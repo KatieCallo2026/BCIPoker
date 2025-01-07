@@ -14,10 +14,10 @@ This project integrates brain computer interface technology into poker, using bi
 - Engage audiences through interactive voting and live data visualizations.  
 
 ### Timeline  
-- **September:** Recruit team, secure venue.  
-- **October:** Finalize designs, train emotion models, promote event.  
-- **TBD** Host poker tournament at UCLA.  
-- **TBD** Display at Los Angeles Walk for ALS.  
+- Recruit team, secure venue.  
+- Finalize designs, train emotion models, promote event.  
+- Host poker tournament at UCLA.  
+- Display at Los Angeles Walk for ALS.  
 
 This event blends entertainment and education, highlighting AI and biometric tech while supporting meaningful causes.
 
