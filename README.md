@@ -23,15 +23,15 @@ WIP
 
 # Credits 
 
-Fulati Aizihaer
-Katie Callo
-Joseph Dekel
-Abdallah Fares
-Omar Fayaz
-Vikram Ganesan
-Umair Khan
-Abril Aguilar Lopez
-Chrysa Prentza
-Natalie Sim
-Simran Tawari
-Alizee Wouters 
+- Fulati Aizihaer
+- Katie Callo
+- Joseph Dekel
+- Abdallah Fares
+- Omar Fayaz
+- Vikram Ganesan
+- Umair Khan
+- Abril Aguilar Lopez
+- Chrysa Prentza
+- Natalie Sim
+- Simran Tawari
+- Alizee Wouters 
