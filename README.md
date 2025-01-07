@@ -16,10 +16,12 @@ BCI for AULI.TEC and Crux@UCLA's Poker Night
 # Installation
 
 WIP 
+[comment]: <> (Will be the BCI that each laptop will run? Might need server idk.)
 
 # Usage 
 
 WIP
+[comment]: <> (How to use the BCI / play poker)
 
 # Credits 
 
