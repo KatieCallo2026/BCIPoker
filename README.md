@@ -27,17 +27,14 @@ This event blends entertainment and education, highlighting biometric tech while
 
 ![Whoops! Should be the data pipeline here](data-pipeline-v1.png)
 
-[comment]: <> (Should add pic of proposed UI later)
 
 # Installation
 
 WIP 
-[comment]: <> (Will be the BCI that each laptop will run? Might need server idk.)
 
 # Usage 
 
 WIP
-[comment]: <> (How to use the BCI / play poker)
 
 # Credits 
 
