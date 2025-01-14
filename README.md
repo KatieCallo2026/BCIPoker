@@ -5,6 +5,7 @@ BCI for AULI.TEC and Crux@UCLA's Poker Night
 # Project Contributors 
 
 Vikram Ganesan
+Abril Aguilar Lopez
 
 # Project Description
 
