@@ -9,6 +9,7 @@ Abril Aguilar Lopez
 Raymond Kallely
 Simran Tawari
 Natalie Sim
+Umair Khan
 
 # Project Description
 
