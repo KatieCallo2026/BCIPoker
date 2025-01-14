@@ -7,6 +7,7 @@ BCI for AULI.TEC and Crux@UCLA's Poker Night
 Vikram Ganesan
 Abril Aguilar Lopez
 Raymond Kallely
+Simran Tawari
 Natalie Sim
 
 # Project Description
