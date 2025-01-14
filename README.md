@@ -3,7 +3,7 @@
 BCI for AULI.TEC and Crux@UCLA's Poker Night
 
 # Project Contributors 
-
+Katie Callo
 Vikram Ganesan
 Abril Aguilar Lopez
 Raymond Kallely
