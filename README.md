@@ -10,6 +10,7 @@ Raymond Kallely
 Simran Tawari
 Natalie Sim
 Umair Khan
+Joseph Dekel
 
 # Project Description
 
