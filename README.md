@@ -9,6 +9,7 @@ Abril Aguilar Lopez
 Raymond Kallely
 Simran Tawari
 Natalie Sim
+Joseph Dekel
 
 # Project Description
 
