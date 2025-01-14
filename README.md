@@ -2,6 +2,8 @@
 
 BCI for AULI.TEC and Crux@UCLA's Poker Night
 
+# Project Contributors 
+
 # Project Description
 
 ### Summary: Real-Time Emotion Measurement Poker Tournament  
