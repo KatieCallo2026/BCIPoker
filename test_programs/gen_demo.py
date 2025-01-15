@@ -15,7 +15,8 @@ import time
 def main():
     # Initialize BrainFlow input parameters with default empty values
     params = BrainFlowInputParams()
-    board = BoardShim(BoardIds.UNICORN_BOARD, params)
+    # This will ne BoardsIds.UNICORN when using the unicorn headset
+    board = BoardShim(BoardIds.SYNTHETIC_BOARD, params)
         
     try:
         # Prepare the board
