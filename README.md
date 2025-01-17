@@ -11,6 +11,7 @@ Simran Tawari
 Natalie Sim
 Umair Khan
 Fulati Aizihaer
+Abdallah Fares
 
 # Project Description
 
