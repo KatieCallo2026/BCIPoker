@@ -4,7 +4,7 @@ import random
 import time
 from threading import Thread
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates')
 CORS(app)
 
 # Global variable to store simulated EEG data
