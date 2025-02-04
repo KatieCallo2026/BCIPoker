@@ -1,0 +1,56 @@
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BrainFlowError, BoardIds
+import time
+import matplotlib.pyplot as plt
+import collections
+
+DEMO_TIME = 15
+WINDOW_SIZE = 100  # Points displayed in the sliding window
+
+def main():
+    params = BrainFlowInputParams()
+    board = BoardShim(BoardIds.SYNTHETIC_BOARD, params)
+
+    try:
+        BoardShim.enable_dev_board_logger()
+        board.prepare_session()
+        board.start_stream()
+        print("Data stream started. Collecting data...")
+
+        plt.ion()  # Interactive mode
+        fig, ax = plt.subplots()
+        line, = ax.plot([], [], 'r-')
+
+        # Set fixed x-axis range and y-axis limits
+        ax.set_xlim(0, WINDOW_SIZE)
+        ax.set_ylim(-50, 50)
+
+        # Use deque for smoother sliding effect
+        xdata = collections.deque(maxlen=WINDOW_SIZE)
+        ydata = collections.deque(maxlen=WINDOW_SIZE)
+
+        start_time = time.time()
+        while time.time() - start_time < DEMO_TIME:
+            data = board.get_current_board_data(10)  # Get small chunks for smoother updates
+            if data.shape[1] > 0:
+                timestamps = data[0].tolist()  # First row: timestamps
+                signal = data[1].tolist()     # Second row: EEG channel (adjust index as needed)
+
+                xdata.extend(timestamps)
+                ydata.extend(signal)
+
+                # Ensure the x-axis remains a fixed window size
+                line.set_xdata(range(len(xdata)))  # x should just be a fixed range
+                line.set_ydata(ydata)
+
+                plt.draw()
+                plt.pause(0.01)  # Pause to update
+
+        board.stop_stream()
+        board.release_session()
+        print("Demo complete.")
+
+    except BrainFlowError as e:
+        print(f"BrainFlowError: {e}")
+
+if __name__ == "__main__":
+    main()
