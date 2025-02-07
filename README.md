@@ -55,10 +55,10 @@ WIP
 - Abdallah Fares
 - Omar Fayaz
 - Vikram Ganesan
+- Raymond Kallely
 - Umair Khan
 - Abril Aguilar Lopez
 - Chrysa Prentza
 - Natalie Sim
 - Simran Tawari
 - Alizee Wouters
-- Raymond Kallely
