@@ -60,4 +60,5 @@ WIP
 - Chrysa Prentza
 - Natalie Sim
 - Simran Tawari
-- Alizee Wouters 
+- Alizee Wouters
+- Raymond Kallely
