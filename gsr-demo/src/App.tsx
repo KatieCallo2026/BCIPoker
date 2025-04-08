@@ -1,49 +1,54 @@
 import { useState, useEffect } from 'react'
 import { LineChart } from '@mui/x-charts'
-import { useInterval } from 'usehooks-ts'
+import { socket } from './socket'
 import './App.css'
 import { Slider, Typography } from '@mui/material'
 import FFT from 'fft.js'
 
 function App() {
   const [xlim, setXLim] = useState(0)
-  const [data, setData] = useState([])
+  const [data, setData] = useState<number[]>([])
+  const [isConnected, setIsConnected] = useState(socket.connected)
   const [graphInterval, setGraphInterval] = useState(50)
   
   const fftInterval = 32
 
   useEffect(() => {
-      fetch( './EDA.csv' )
-          .then( response => response.text() )
-          .then( responseText => {
-              console.log(responseText)
-              const signal = responseText.split("\n")
-              const num_signal = signal.map((n) => parseFloat(n)).slice(2)
-              setData(num_signal)
-          })
 
-  }, [])
-
-  useInterval(() => {
-    if(xlim + 1 > data.length){
-      setXLim(0)
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
+    const onData = (d) => {
+      const datapoint = d.data
+      const timestamp = d.timestamp
+      let d2 = [...data]
+      if(d2.length > graphInterval){
+        d2.shift()
+      }
+      d2.push(parseFloat(d))
+      setData(d2)
+      console.log(d)
     }
-    setXLim(xlim + 1)
-  }, 20)
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('data', onData)
+    return () => {
+      socket.off('data', onData);
+    };
+  }, [data])
+
+
 
   const powerSpectrum = (d, size) => {
     if(size > 0 && d.length != 0){
-      console.log('here')
       const f = new FFT(size)
     if (d.length == size){
-      console.log('here2')
       const out = f.createComplexArray()
       f.realTransform(out, d)
       const magnitudes = new Array(size / 2);
     for (let j = 0; j < size / 2; j++) {
       magnitudes[j] = Math.sqrt(out[2 * j] ** 2 + out[2 * j + 1] ** 2);
     }
-    console.log(magnitudes)
 
     return magnitudes
     }
@@ -65,6 +70,7 @@ function App() {
           showMark: false,
           label: 'GSR in microSiemens (μS)'
         }]} 
+        
         xAxis={[{data:data.map((n, i) => i/4).slice(0, graphInterval), label: 'Time in seconds after recording starts'}]}/>
       
 
