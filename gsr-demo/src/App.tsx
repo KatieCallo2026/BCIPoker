@@ -2,32 +2,35 @@ import { useState, useEffect } from 'react'
 import { LineChart } from '@mui/x-charts'
 import { socket } from './socket'
 import './App.css'
-import { Slider, Typography } from '@mui/material'
+import { Slider, Typography, Button } from '@mui/material'
 import FFT from 'fft.js'
 
 function App() {
   const [xlim, setXLim] = useState(0)
   const [data, setData] = useState<number[]>([])
   const [isConnected, setIsConnected] = useState(socket.connected)
+  const [delay, setDelay] = useState(0)
   const [graphInterval, setGraphInterval] = useState(50)
+  const [recording, setRecording] = useState(false)
   
   const fftInterval = 32
 
-  useEffect(() => {
-
-    const onConnect = () => setIsConnected(true);
-    const onDisconnect = () => setIsConnected(false);
-    const onData = (d) => {
-      const datapoint = d.data
-      const timestamp = d.timestamp
-      let d2 = [...data]
-      if(d2.length > graphInterval){
-        d2.shift()
-      }
-      d2.push(parseFloat(d))
-      setData(d2)
-      console.log(d)
+  const onConnect = () => setIsConnected(true);
+  const onDisconnect = () => setIsConnected(false);
+  const onData = (d) => {
+    const datapoint = d.conductance
+    const timestamp = d.timeStamp
+    const delay2 = Date.now() - timestamp
+    setDelay(delay2)
+    let d2 = [...data]
+    if(d2.length > graphInterval){
+      d2.shift()
     }
+    d2.push(parseFloat(datapoint))
+    setData(d2)
+  }
+
+  useEffect(() => {
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
@@ -55,6 +58,27 @@ function App() {
       return []
     }
     return []
+  }
+
+  const handleRecord = () => {
+    
+    if(recording){
+      socket.emit('stopRecording', Date.now())
+    }
+    else{
+      socket.emit('startRecording', Date.now())
+      console.log('emitted')
+    }
+    setRecording(!recording)
+  }
+
+  const handleStreaming = () => {
+    if(isConnected){
+      socket.disconnect()
+    }
+    else{
+      socket.connect()
+    }
   }
 
   return (
@@ -89,6 +113,13 @@ function App() {
           <p style={{color: '#000000'}}>
              ^ Change Interval that is plotted
           </p>
+          <Button onClick={handleRecord}>
+            {recording ? 'Stop Recording' : 'Start Recording'}
+          </Button>
+
+          <Button onClick={handleStreaming}>
+            {isConnected ? 'Stop Streaming Data' : 'Start Streaming Data'}
+          </Button>
       </div>
     </>
   )
