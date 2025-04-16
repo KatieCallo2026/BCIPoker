@@ -6,9 +6,13 @@ import numpy as np
 import collections
 import pandas as pd
 
-DEMO_TIME = 15
+# TODO
+# integrate visuals together
+
+
+DEMO_TIME = 10
 WINDOW_SIZE = 80  # Points displayed in the sliding window
-BUFFER_SIZE = 100  # Save to CSV every 100 samples
+BUFFER_SIZE = 1000  # Save to CSV every 100 samples
 
 CSV_FILENAME = "eeg_stream_data.csv"  # Output file
 
@@ -73,6 +77,9 @@ def main():
         for i, (ax, col) in enumerate(zip(axes, selected_columns[1:])):
             color = color_cycle(i)
             lines[col], = ax.plot([], [], label=col, color=color)
+            
+            # Create a shaded area (fill_between)
+            fill = ax.fill_between([], [], [], color=color, alpha=0.3)  # Initial empty shading
             ax.set_xlim(0, WINDOW_SIZE)
             ax.set_ylim(-50, 100)  # Adjust for EEG signal scale
             ax.set_ylabel(col)
@@ -94,8 +101,21 @@ def main():
                 csv_buffer.append(row_data)
 
                 for col in data_buffers:
+                    x_vals = range(len(data_buffers[col]))
+                    y_vals = list(data_buffers[col])
+
                     lines[col].set_xdata(range(len(data_buffers[col])))
                     lines[col].set_ydata(data_buffers[col])
+
+                    # Find corresponding axis (skip 'Time' for index adjustment)
+                    ax = axes[selected_columns.index(col) - 1]
+                    
+                    # Clear old fill (clear only for the relevant plot)
+                    for collection in ax.collections:
+                        collection.remove()
+
+                    # Update fill_between shading
+                    ax.fill_between(x_vals, y_vals, color=lines[col].get_color(), alpha=0.3)
 
                 plt.draw()
                 plt.pause(0.01)
