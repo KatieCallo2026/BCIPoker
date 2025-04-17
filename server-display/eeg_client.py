@@ -2,6 +2,7 @@ from pylsl import StreamInlet, resolve_stream
 from datetime import datetime
 import time
 from cog_states import classify_state # cog state funcs
+from config import EEG_BUFFER_SIZE, EEG_STATE_INTERVAL  #import config values
 
 ##################################################
 # eeg_client.py - GSR data stream
@@ -9,9 +10,7 @@ from cog_states import classify_state # cog state funcs
 ##################################################
 
 # set up circular buffer
-BUFFER_SIZE = 250  # 1 sec at 250Hz
 eeg_buffer = {i: [] for i in range(8)}
-STATE_INTERVAL = 1.0  # seconds between state classification
 last_state_time = time.time()
 
 # data sample columns: ['Time',
@@ -32,7 +31,7 @@ def stream_eeg(socketio):
         # fill buffer
         for i in range(8):
             eeg_buffer[i].append(sample[i])
-            if len(eeg_buffer[i]) > BUFFER_SIZE:
+            if len(eeg_buffer[i]) > EEG_BUFFER_SIZE:
                 eeg_buffer[i].pop(0)
 
         # emit the sample for live plot (first channel)
@@ -42,7 +41,7 @@ def stream_eeg(socketio):
         })
 
         # classify cognitive state every 1s
-        if time.time() - last_state_time > STATE_INTERVAL:
+        if time.time() - last_state_time > EEG_STATE_INTERVAL:
             state = classify_state(eeg_buffer)
             print("Classified state:", state)
             socketio.emit('cognitive_state', {

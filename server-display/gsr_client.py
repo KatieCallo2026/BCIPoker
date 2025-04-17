@@ -1,6 +1,7 @@
 import pyfirmata
 import time
 from datetime import datetime
+from config import GSR_UPDATE_INTERVAL
 
 def stream_gsr(socketio):
     board = pyfirmata.Arduino('/dev/tty.YOUR_BLUETOOTH_PORT')  # Replace with your Bluetooth port
@@ -17,4 +18,4 @@ def stream_gsr(socketio):
                 'timestamp': datetime.utcnow().isoformat(),
                 'value': val
             })
-        time.sleep(0.05)  # ~20Hz
+        time.sleep(GSR_UPDATE_INTERVAL)
