@@ -34,6 +34,8 @@
     <h3>GSR (Galvanic Skin Response)</h3>
     <canvas id="gsrChart" width="600" height="200"></canvas>
 
+    <h3 id="stateDisplay">Cognitive State: ...</h3>
+
     <h3>EEG (Sampled Channel 1)</h3>
     <canvas id="eegChart" width="600" height="200"></canvas>
 
@@ -121,6 +123,10 @@
             const timestamp = Date.now();
             const value = data.data[0];  // Just the first EEG channel
             eegChart.data.datasets[0].data.push({ x: timestamp, y: value });
+        });
+
+        socket.on('cognitive_state', data => {
+            document.getElementById('stateDisplay').innerText = `Cognitive State: ${data.state}`;
         });
     </script>
 
