@@ -4,6 +4,15 @@
 # this is so we can tweak timing changes in one place
 # files will import these macros from here
 
+# -----------------------------------------------
+# DATA SOURCE CONTROLS
+# -----------------------------------------------
+
+# Whether to use mock EEG data (True = simulated, False = LSL )
+USE_MOCK_EEG = False
+# Whether to use mock GSR data (True = simulated, False = Arduino)
+USE_MOCK_GSR = True
+
 
 # -----------------------------------------------
 # EEG SETTINGS
