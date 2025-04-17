@@ -6,16 +6,19 @@ eventlet.monkey_patch()
 
 #################################################
 # app.py - flask server to display both streams
-# 
 ################################################
 
-# flag for using fake data stream - for testing
-USE_MOCK_DATA = True
+from config import USE_MOCK_EEG, USE_MOCK_GSR  # import flags from config
+# can toggle both eeg and gsr separately 
 
-if USE_MOCK_DATA:
-    from mock_clients import stream_gsr, stream_eeg
+if USE_MOCK_GSR:
+    from mock_clients import stream_gsr
 else:
     from gsr_client import stream_gsr
+
+if USE_MOCK_EEG:
+    from mock_clients import stream_eeg
+else:
     from eeg_client import stream_eeg
 
 app = Flask(__name__)
