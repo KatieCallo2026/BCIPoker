@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>GSR + EEG Monitor</title>
+
+    <!-- Core libs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 🔧 Required: Luxon and adapter for realtime timestamps -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+
+    <!-- Realtime chart plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+
+    <!-- WebSocket client -->
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <style>
+        canvas {
+            display: block;
+            max-width: 90%;
+            margin: 10px auto;
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Live Biofeedback</h1>
+
+    <h3>GSR (Galvanic Skin Response)</h3>
+    <canvas id="gsrChart" width="600" height="200"></canvas>
+
+    <h3>EEG (Sampled Channel 1)</h3>
+    <canvas id="eegChart" width="600" height="200"></canvas>
+
+    <script>
+        // Register streaming plugin explicitly
+        const ChartStreaming = window['chartjs-plugin-streaming'];
+        //Chart.register(ChartStreaming);
+
+        const socket = io();
+
+        const gsrCtx = document.getElementById('gsrChart').getContext('2d');
+        const eegCtx = document.getElementById('eegChart').getContext('2d');
+
+        const gsrChart = new Chart(gsrCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'GSR',
+                    data: [],
+                    borderWidth: 1,
+                    borderColor: 'rgba(75,192,192,1)',
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                scales: {
+                    x: {
+                        type: 'realtime',
+                        realtime: {
+                            duration: 20000,
+                            delay: 1000,
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+
+        const eegChart = new Chart(eegCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'EEG Ch1',
+                    data: [],
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,99,132,1)',
+                    fill: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                scales: {
+                    x: {
+                        type: 'realtime',
+                        realtime: {
+                            duration: 20000,
+                            delay: 1000,
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+
+        socket.on('gsr_data', data => {
+            const timestamp = Date.now();
+            const value = data.value;
+            gsrChart.data.datasets[0].data.push({ x: timestamp, y: value });
+        });
+
+        socket.on('eeg_data', data => {
+            const timestamp = Date.now();
+            const value = data.data[0];  // Just the first EEG channel
+            eegChart.data.datasets[0].data.push({ x: timestamp, y: value });
+        });
+    </script>
+
+</body>
+
+</html>

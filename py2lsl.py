@@ -1,0 +1,44 @@
+from pylsl import StreamInlet, resolve_stream
+import pandas as pd
+
+# initialize the streaming layer
+finished = False
+streams = resolve_stream()
+inlet = StreamInlet(streams[0])
+
+# initialize the colomns of your data and your dictionary to capture the data.
+columns=['Time','FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8','AccX','AccY','AccZ',
+'Gyro1','Gyro2','Gyro3', 'Battery','Counter','Validation']
+data_dict = dict((k, []) for k in columns)
+
+while not finished:
+   # get the streamed data. Columns of sample are equal to the columns variable, only the first element being timestamp
+   # concatenate timestamp and data in 1 list
+   data, timestamp = inlet.pull_sample()
+   all_data = [timestamp] + data
+   
+   # Data is a list, not a dict
+   #print(all_data)
+
+   # data is collected at 250 Hz. Let's stop data collection after 60 seconds. Meaning we stop when we collected 250*60 samples.
+   if len(data_dict['Time']) >= 250*2:
+      finished = True
+
+# lastly, we can save our data to a CSV format.
+data_df = pd.DataFrame.from_dict(data_dict)
+data_df.to_csv('EEGdata.csv', index = False)
+
+
+# python server on this 
+# write and test backend server
+# send data to web app in real time
+
+# run in my envr
+# C:\Python311\python.exe test.py
+
+# [203585.063734, -139650.21875, 91427.1328125, -338398.0, 91601.296875, 91609.4375, 91681.40625, 91824.4609375, 91777.25, 0.74267578125, 0.133056640625, -0.67041015625, 0.4272460639476776, 2.258300542831421, -0.2746581733226776, 6.6666669845581055, 1827.0, 1.0]
+# [203585.0662576, -139783.609375, 91399.7734375, -338578.53125, 91572.8671875, 91581.453125, 91653.5078125, 91796.0234375, 91749.265625, 0.739990234375, 0.134521484375, -0.669677734375, 0.4272460639476776, 2.258300542831421, -0.2136230319738388, 6.6666669845581055, 1828.0, 1.0]
+# [203585.066276, -139923.890625, 91339.3359375, -338747.5, 91512.15625, 91520.65625, 91592.890625, 91735.40625, 91688.5625, 0.740966796875, 0.12890625, -0.6708984375, 0.4272460639476776, 2.288818120956421, -0.1525878757238388, 6.6666669845581055, 1829.0, 1.0]
+# [203585.0688679, -139723.71875, 91478.8984375, -338510.5625, 91652.6171875, 91660.75, 91733.265625, 91875.953125, 91828.9296875, 0.74072265625, 0.1318359375, -0.669921875, 0.4882812201976776, 2.288818120956421, -0.2136230319738388, 6.6666669845581055, 1830.0, 1.0]
+# [203585.0750277, -139617.9375, 91645.2890625, -338322.28125, 91819.5390625, 91827.765625, 91900.1875, 92042.7890625, 91995.9375, 0.743408203125, 0.133544921875, -0.668701171875, 0.5187987685203552, 2.258300542831421, -0.1525878757238388, 6.6666669845581055, 1831.0, 1.0]
+# [203585.0750563, -139791.484375, 91622.84375, -338501.28125, 91797.1015625, 91805.1484375, 91877.65625, 92020.4375, 91973.5, 0.74169921875, 0.134033203125, -0.670166015625, 0.5187987685203552, 2.197265386581421, -0.2136230319738388, 6.6666669845581055, 1832.0, 1.0]
