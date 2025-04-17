@@ -1,0 +1,3 @@
+pip install flask flask-socketio eventlet pyfirmata pylsl
+pip install numpy pandas
+
