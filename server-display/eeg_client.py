@@ -9,15 +9,13 @@ from config import EEG_BUFFER_SIZE, EEG_STATE_INTERVAL  #import config values
 # now has cognitive state logic
 ##################################################
 
-# set up circular buffer
-eeg_buffer = {i: [] for i in range(8)}
+# set up circular buffer with channel labels
+channel_labels = ['FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8']
+eeg_buffer = {label: [] for label in channel_labels} 
 last_state_time = time.time()
 
-# data sample columns: ['Time',
-# 'FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8',
-# 'AccX','AccY','AccZ',
-# 'Gyro1','Gyro2','Gyro3', 
-# 'Battery','Counter','Validation']
+# data sample columns (full thing):
+# [ 'FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8', 'AccX','AccY','AccZ', 'Gyro1','Gyro2','Gyro3',  'Battery','Counter','Validation']
 
 def stream_eeg(socketio):
     global last_state_time # risky..
@@ -29,10 +27,10 @@ def stream_eeg(socketio):
         if not sample: continue # err check
 
         # fill buffer
-        for i in range(8):
-            eeg_buffer[i].append(sample[i])
-            if len(eeg_buffer[i]) > EEG_BUFFER_SIZE:
-                eeg_buffer[i].pop(0)
+        for i, label in enumerate(channel_labels):
+            eeg_buffer[label].append(sample[i])
+            if len(eeg_buffer[label]) > EEG_BUFFER_SIZE:
+                eeg_buffer[label].pop(0)
 
         # emit the sample for live plot (first channel)
         socketio.emit('eeg_data', {
