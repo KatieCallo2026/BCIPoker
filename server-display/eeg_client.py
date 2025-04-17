@@ -18,10 +18,18 @@ last_state_time = time.time()
 # [ 'FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8', 'AccX','AccY','AccZ', 'Gyro1','Gyro2','Gyro3',  'Battery','Counter','Validation']
 
 def stream_eeg(socketio):
-    global last_state_time # risky..
-    streams = resolve_stream()
-    inlet = StreamInlet(streams[0])
+    global last_state_time 
 
+    print("🔍 Resolving LSL stream...")
+    streams = resolve_stream(timeout=2.0)
+
+    if not streams:
+        print("❌ No LSL EEG stream found — skipping EEG stream setup.")
+        return  # or log and continue safely
+
+    print("✅ LSL stream found!")
+    inlet = StreamInlet(streams[0])
+    
     while True:
         sample, timestamp = inlet.pull_sample()
         if not sample: continue # err check
