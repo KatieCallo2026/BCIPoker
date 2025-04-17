@@ -17,16 +17,17 @@ Joseph Dekel
 
 ### Summary: Real-Time Emotion Measurement Poker Tournament  
 
-This project integrates brain computer interface technology into poker, using biometric data to analyze and visualize players' emotions and tells.
+This project integrates brain computer interface technology into poker, using biometric data to analyze and visualize players' cognitive states during a game of poker.
 
 ### Objectives  
 - Showcase Auli.tech, Cato, and CruX technologies.  
 - Fundraise for ALS foundations and CruX initiatives.  
-- Engage audiences through interactive voting and live data visualizations.  
+- Engage audiences through interactive gameplay and live data visualizations.  
 
 ### Timeline  
 - Recruit team, secure venue.  
 - Finalize designs, train emotion models, promote event.  
+- Present demo at California Neurotech Conference in San Diego
 - Host poker tournament at UCLA.  
 - Display at Los Angeles Walk for ALS.  
 
@@ -36,16 +37,11 @@ This event blends entertainment and education, highlighting biometric tech while
 
 **Where do we get data, and what do we do with it?**
 
-![Whoops! Should be the data pipeline here](data-pipeline-v1.png)
+![Whoops! Should be the data pipeline here](Graphics/data-pipeline-v1.png)
 
+# Display
 
-# Installation
-
-WIP 
-
-# Usage 
-
-WIP
+![Should be our screen display here!](Graphics/per-player-screen.png)
 
 # Credits 
 
