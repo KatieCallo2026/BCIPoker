@@ -1,2 +1,3 @@
 test_programs/eeg_stream_data.csv
 __pycache__
+*.sh
