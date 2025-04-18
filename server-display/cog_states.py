@@ -25,6 +25,16 @@ def classify_state(eeg_buffer, fs=250):
     delta = []
     beta = []
 
+    # Skip if any channel is too short
+    if any(len(ch_data) < fs for ch_data in eeg_buffer.values()):
+        return {
+            "Relaxed": 0.0,
+            "Focused": 0.0,
+            "Cognitive Load": 0.0,
+            "Drowsy": 0.0,
+            "Neutral": 1.0
+        }
+
     for ch_data in eeg_buffer.values():
         if len(ch_data) < fs: continue  # skip partial buffers
         alpha.append(bandpower(ch_data, fs, (8, 12)))
@@ -37,16 +47,12 @@ def classify_state(eeg_buffer, fs=250):
     delta_avg = np.mean(delta)
     beta_avg = np.mean(beta)
 
-    # Simple logic-based classifier
-    if alpha_avg > theta_avg * 2:
-        return "Relaxed"
-    elif theta_avg > alpha_avg * 1.5:
-        return "Cognitive Load"
-    elif delta_avg > beta_avg * 1.2:
-        return "Drowsy"
-    elif beta_avg > theta_avg * 2:
-        return "Focused"
-    else:
-        return "Neutral"
-    
-    # for now it shows 1 state, might switch to all and display the most probable ? 
+    total = alpha_avg + beta_avg + theta_avg + delta_avg + 1e-6  # prevent div by zero
+
+    return {
+        "Relaxed": alpha_avg / total,
+        "Focused": beta_avg / total,
+        "Cognitive Load": theta_avg / total,
+        "Drowsy": delta_avg / total,
+        "Neutral": 0.0  # Optional baseline
+    }

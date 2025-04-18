@@ -27,7 +27,7 @@ def stream_eeg(socketio):
         inlet = StreamInlet(streams[0])
         print("✅ LSL stream found!")
     except IndexError:
-        print("No LSL stream found...")
+        print("❌ No LSL stream found...")
         return
 
     
@@ -49,11 +49,9 @@ def stream_eeg(socketio):
 
         # classify cognitive state every 1s
         if time.time() - last_state_time > EEG_STATE_INTERVAL:
-            state = classify_state(eeg_buffer)
-            print("Classified state:", state)
             socketio.emit('cognitive_state', {
                 'timestamp': datetime.utcnow().isoformat(),
-                'state': state
+                'values': classify_state(eeg_buffer)
             })
             last_state_time = time.time()
 
