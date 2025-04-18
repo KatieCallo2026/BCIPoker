@@ -7,14 +7,14 @@
     <!-- Core libs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- 🔧 Required: Luxon and adapter for realtime timestamps -->
+    <!-- Luxon for time handling -->
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
 
-    <!-- Realtime chart plugin -->
+    <!-- Realtime plugin -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
 
-    <!-- WebSocket client -->
+    <!-- Socket.IO -->
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 
     <style>
@@ -34,20 +34,29 @@
     <h3>GSR (Galvanic Skin Response)</h3>
     <canvas id="gsrChart" width="600" height="200"></canvas>
 
-    <h3 id="stateDisplay">Cognitive State: ...</h3>
-
     <h3>EEG (Sampled Channel 1)</h3>
     <canvas id="eegChart" width="600" height="200"></canvas>
 
-    <script>
-        // Register streaming plugin explicitly
-        const ChartStreaming = window['chartjs-plugin-streaming'];
-        //Chart.register(ChartStreaming);
+    <h3>Cognitive State Intensities Over Time</h3>
+    <canvas id="cogChart" width="600" height="300"></canvas>
 
+    <script>
         const socket = io();
+
+        // ----- Chart setup -----
 
         const gsrCtx = document.getElementById('gsrChart').getContext('2d');
         const eegCtx = document.getElementById('eegChart').getContext('2d');
+        const stateCtx = document.getElementById('cogChart').getContext('2d');
+
+        const states = ['Relaxed', 'Focused', 'Cognitive Load', 'Drowsy', 'Neutral'];
+        const stateColors = {
+            Relaxed: 'blue',
+            Focused: 'green',
+            'Cognitive Load': 'orange',
+            Drowsy: 'purple',
+            Neutral: 'gray'
+        };
 
         const gsrChart = new Chart(gsrCtx, {
             type: 'line',
@@ -113,6 +122,48 @@
             }
         });
 
+        const cogChart = new Chart(stateCtx, {
+            type: 'line',
+            data: {
+                datasets: states.map(state => ({
+                    label: state,
+                    data: [],
+                    borderColor: stateColors[state],
+                    fill: false,
+                    tension: 0.2
+                }))
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                scales: {
+                    x: {
+                        type: 'realtime',
+                        realtime: {
+                            duration: 60000,
+                            delay: 1000,
+                        },
+                        title: {
+                            display: true,
+                            text: 'Time'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'State Intensity'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+
+        // ----- Socket events -----
+
         socket.on('gsr_data', data => {
             const timestamp = Date.now();
             const value = data.value;
@@ -121,12 +172,20 @@
 
         socket.on('eeg_data', data => {
             const timestamp = Date.now();
-            const value = data.data[0];  // Just the first EEG channel
+            const value = data.data[0];  // First EEG channel
             eegChart.data.datasets[0].data.push({ x: timestamp, y: value });
         });
 
         socket.on('cognitive_state', data => {
-            document.getElementById('stateDisplay').innerText = `Cognitive State: ${data.state}`;
+            const timestamp = Date.now();
+            const values = data.values;
+
+            for (const state of states) {
+                const dataset = cogChart.data.datasets.find(d => d.label === state);
+                if (dataset && values[state] !== undefined) {
+                    dataset.data.push({ x: timestamp, y: values[state] });
+                }
+            }
         });
     </script>
 
