@@ -18,10 +18,11 @@ last_state_time = time.time()
 # data sample columns (full thing):
 # [ 'FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8', 'AccX','AccY','AccZ', 'Gyro1','Gyro2','Gyro3',  'Battery','Counter','Validation']
 
+
 def stream_eeg(socketio):
     print("🔍 Resolving LSL stream...")
-    global last_state_time # risky..
-    
+    global last_state_time
+
     inlet = None 
     try:
         streams = resolve_stream()
@@ -31,13 +32,19 @@ def stream_eeg(socketio):
         print("❌ No LSL stream found...")
         return
 
+    has_received_data = False 
+    stream_start_time = time.time()
     
     while True:
         sample, timestamp = inlet.pull_sample(timeout=0.0)
         if not sample: 
+            if not has_received_data and time.time() - stream_start_time > 3:
+                print("⚠️  EEG stream open but no data received. It might not be started.")
+                stream_start_time = float('inf')  # prevent repeat warning
             time.sleep(0.001)
             continue
-
+        has_received_data = True 
+        
         # fill buffer
         for i, label in enumerate(channel_labels):
             eeg_buffer[label].append(sample[i])

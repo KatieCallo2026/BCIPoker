@@ -31,33 +31,42 @@
             margin: 10px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
         }
+
+        #dealerCards img {
+            height: 220px;
+            border: 1px solid #aaa;
+            border-radius: 20px;
+        }
     </style>
 </head>
 
 <body>
-    <h1>Live Biofeedback Dashboard</h1>
-
-    <!-- OLD - want side by side
-    <h2>GSR (Galvanic Skin Response)</h2>
-    <canvas id="gsrChart" width="600" height="200"></canvas>
-
-    <h2>Cognitive State Intensities Over Time</h2>
-    <canvas id="cogChart" width="600" height="300"></canvas>
-    -->
+    <h1>PLAYER Biofeedback Dashboard</h1>
 
     <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
         <div style="text-align: center;">
             <h2>GSR (Galvanic Skin Response)</h2>
-            <canvas id="gsrChart" width="800" height="400"></canvas>
+            <canvas id="gsrChart" width="800" height="350"></canvas>
         </div>
         <div style="text-align: center;">
             <h2>Cognitive State Intensities</h2>
-            <canvas id="cogChart" width="800" height="400"></canvas>
+            <canvas id="cogChart" width="800" height="350"></canvas>
         </div>
     </div>
 
-    <h2>EEG Channels (Live - Subplots)</h2>
-    <canvas id="eegSubplotCanvas" width="600" height="200"></canvas>
+    <div style="display: flex; justify-content: space-around; align-items: flex-start; flex-wrap: wrap;">
+        <div style="text-align: center;">
+            <h2>EEG Channels (Live - Subplots)</h2>
+            <canvas id="eegSubplotCanvas" width="750" height="300"></canvas>
+        </div>
+
+        <div style="text-align: center;">
+            <h2>Dealer</h2>
+            <div id="dealerCards" style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+                <!-- Cards will be injected here -->
+            </div>
+        </div>
+    </div>
 
     <script>
         const socket = io();
@@ -201,6 +210,14 @@
             });
         }
 
+        // ----- Dealer init: show 5 face-down cards -----
+        const container = document.getElementById('dealerCards');
+        for (let i = 0; i < 5; i++) {
+            const img = document.createElement('img');
+            img.src = `/static/cards/BACK.png`;
+            container.appendChild(img);
+        }
+
         // ------------- Socket Handlers -------------
         socket.on('gsr_data', data => {
             const timestamp = Date.now();
@@ -241,6 +258,38 @@
         if (!subplotCanvas) {
             console.error("❌ eegSubplotCanvas not found in DOM!");
         }
+
+        // ----- Dealer ------
+        socket.on('dealer_card', data => {
+            const code = data.code;
+            const img = document.createElement('img');
+            img.src = `/static/cards/${code}.png`;
+
+            const container = document.getElementById('dealerCards');
+            const cards = Array.from(container.children);
+
+            if (cards.length === 5) {
+                // Replace the last BACK (rightmost)
+                for (let i = 4; i >= 0; i--) {
+                    if (cards[i].src.includes('BACK.png')) {
+                        container.replaceChild(img, cards[i]);
+                        return;
+                    }
+                }
+
+                // If no BACKs left, reset the hand
+                container.innerHTML = '';
+                for (let i = 0; i < 5; i++) {
+                    const back = document.createElement('img');
+                    back.src = `/static/cards/BACK.png`;
+                    container.appendChild(back);
+                }
+
+                // Replace the first BACK (rightmost again)
+                container.replaceChild(img, container.children[4]);
+            }
+        });
+
 
     </script>
 </body>
