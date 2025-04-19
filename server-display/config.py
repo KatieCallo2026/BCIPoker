@@ -21,7 +21,7 @@ USE_MOCK_GSR = True
 # Sampling rate of the EEG device (samples per second - 250 common )
 EEG_SAMPLING_RATE = 250             # Hz
 # Duration of the EEG buffer window used for analysis (in seconds) - how many seconds of eeg data are used for FFT/state classification
-EEG_BUFFER_DURATION = 0.5           # seconds
+EEG_BUFFER_DURATION = 1.0           # seconds
 # Number of EEG samples to store in the buffer - sampling rate × duration
 EEG_BUFFER_SIZE = int(EEG_SAMPLING_RATE * EEG_BUFFER_DURATION)
 
