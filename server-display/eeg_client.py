@@ -3,6 +3,7 @@ from datetime import datetime
 import time
 from cog_states import classify_state # cog state funcs
 from config import EEG_BUFFER_SIZE, EEG_STATE_INTERVAL  #import config values
+print("📦 eeg_client.py imported")
 
 ##################################################
 # eeg_client.py - GSR data stream
@@ -32,8 +33,10 @@ def stream_eeg(socketio):
 
     
     while True:
-        sample, timestamp = inlet.pull_sample()
-        if not sample: continue # err check
+        sample, timestamp = inlet.pull_sample(timeout=0.0)
+        if not sample: 
+            time.sleep(0.001)
+            continue
 
         # fill buffer
         for i, label in enumerate(channel_labels):
@@ -49,10 +52,12 @@ def stream_eeg(socketio):
 
         # classify cognitive state every 1s
         if time.time() - last_state_time > EEG_STATE_INTERVAL:
-            socketio.emit('cognitive_state', {
-                'timestamp': datetime.utcnow().isoformat(),
-                'values': classify_state(eeg_buffer)
-            })
+            if all(len(ch) >= EEG_BUFFER_SIZE for ch in eeg_buffer.values()):
+                state = classify_state(eeg_buffer)
+                print("🧠 Cognitive state:", state)
+                socketio.emit('cognitive_state', {
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'values': state
+                })
             last_state_time = time.time()
-
-        time.sleep(0.004)  # ~250Hz
+        
