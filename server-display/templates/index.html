@@ -48,16 +48,16 @@
     <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
         <div style="text-align: center;">
             <h2>GSR (Galvanic Skin Response)</h2>
-            <canvas id="gsrChart" width="500" height="200"></canvas>
+            <canvas id="gsrChart" width="800" height="400"></canvas>
         </div>
         <div style="text-align: center;">
             <h2>Cognitive State Intensities</h2>
-            <canvas id="cogChart" width="500" height="200"></canvas>
+            <canvas id="cogChart" width="800" height="400"></canvas>
         </div>
     </div>
 
     <h2>EEG Channels (Live - Subplots)</h2>
-    <canvas id="eegSubplotCanvas" width="900" height="600"></canvas>
+    <canvas id="eegSubplotCanvas" width="600" height="200"></canvas>
 
     <script>
         const socket = io();
@@ -161,8 +161,8 @@
 
             ctx.clearRect(0, 0, w, h);
 
-            const colCount = 2;
-            const rowCount = 4;
+            const colCount = 4;
+            const rowCount = 2;
             const subplotW = w / colCount;
             const subplotH = h / rowCount;
 
