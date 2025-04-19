@@ -21,7 +21,7 @@
         canvas {
             display: block;
             max-width: 90%;
-            margin: 10px auto;
+            margin: 20px auto;
             background: #f9f9f9;
             border: 1px solid #ccc;
         }
@@ -29,35 +29,22 @@
 </head>
 
 <body>
-    <h1>Live Biofeedback</h1>
+    <h1>Live Biofeedback Dashboard</h1>
 
-    <h3>GSR (Galvanic Skin Response)</h3>
+    <h2>GSR (Galvanic Skin Response)</h2>
     <canvas id="gsrChart" width="600" height="200"></canvas>
 
-    <h3>EEG (Sampled Channel 1)</h3>
-    <canvas id="eegChart" width="600" height="200"></canvas>
-
-    <h3>Cognitive State Intensities Over Time</h3>
+    <h2>Cognitive State Intensities Over Time</h2>
     <canvas id="cogChart" width="600" height="300"></canvas>
+
+    <h2>EEG Channels (Live - Subplots)</h2>
+    <canvas id="eegSubplotCanvas" width="900" height="600"></canvas>
 
     <script>
         const socket = io();
 
-        // ----- Chart setup -----
-
+        // ------------- GSR Chart -------------
         const gsrCtx = document.getElementById('gsrChart').getContext('2d');
-        const eegCtx = document.getElementById('eegChart').getContext('2d');
-        const stateCtx = document.getElementById('cogChart').getContext('2d');
-
-        const states = ['Relaxed', 'Focused', 'Cognitive Load', 'Drowsy', 'Neutral'];
-        const stateColors = {
-            Relaxed: 'blue',
-            Focused: 'green',
-            'Cognitive Load': 'orange',
-            Drowsy: 'purple',
-            Neutral: 'gray'
-        };
-
         const gsrChart = new Chart(gsrCtx, {
             type: 'line',
             data: {
@@ -76,7 +63,7 @@
                     x: {
                         type: 'realtime',
                         realtime: {
-                            duration: 20000,
+                            duration: 8000, // last 8 secs
                             delay: 1000,
                         }
                     },
@@ -90,37 +77,16 @@
             }
         });
 
-        const eegChart = new Chart(eegCtx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: 'EEG Ch1',
-                    data: [],
-                    borderWidth: 1,
-                    borderColor: 'rgba(255,99,132,1)',
-                    fill: false,
-                }]
-            },
-            options: {
-                responsive: true,
-                animation: false,
-                scales: {
-                    x: {
-                        type: 'realtime',
-                        realtime: {
-                            duration: 20000,
-                            delay: 1000,
-                        }
-                    },
-                    y: {
-                        beginAtZero: true
-                    }
-                },
-                plugins: {
-                    legend: { display: true }
-                }
-            }
-        });
+        // ------------- Cognitive State Chart -------------
+        const stateCtx = document.getElementById('cogChart').getContext('2d');
+        const states = ['Relaxed', 'Focused', 'Cognitive Load', 'Drowsy', 'Neutral'];
+        const stateColors = {
+            Relaxed: 'blue',
+            Focused: 'green',
+            'Cognitive Load': 'orange',
+            Drowsy: 'purple',
+            Neutral: 'gray'
+        };
 
         const cogChart = new Chart(stateCtx, {
             type: 'line',
@@ -140,7 +106,7 @@
                     x: {
                         type: 'realtime',
                         realtime: {
-                            duration: 60000,
+                            duration: 8000, // 8 secs
                             delay: 1000,
                         },
                         title: {
@@ -150,9 +116,10 @@
                     },
                     y: {
                         beginAtZero: true,
+                        max: 1.0,
                         title: {
                             display: true,
-                            text: 'State Intensity'
+                            text: 'State Intensity (Normalized)'
                         }
                     }
                 },
@@ -162,23 +129,79 @@
             }
         });
 
-        // ----- Socket events -----
+        // ------------- EEG Subplot Canvas (Custom Rendered) -------------
+        const eegChannels = ['FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8'];
+        const eegBufferLength = 250; // ~1s of data at 250Hz
+        const eegBuffers = eegChannels.map(() => []);
+        const subplotCanvas = document.getElementById('eegSubplotCanvas');
+        const ctx = subplotCanvas.getContext('2d');
 
+        function drawEEGSubplots() {
+            const w = subplotCanvas.width;
+            const h = subplotCanvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const colCount = 2;
+            const rowCount = 4;
+            const subplotW = w / colCount;
+            const subplotH = h / rowCount;
+
+            eegChannels.forEach((label, i) => {
+                const col = i % colCount;
+                const row = Math.floor(i / colCount);
+                const x0 = col * subplotW;
+                const y0 = row * subplotH;
+
+                const buffer = eegBuffers[i];
+                if (buffer.length < 2) return;
+
+                // Normalize values
+                const min = Math.min(...buffer);
+                const max = Math.max(...buffer);
+                const range = max - min || 1;
+
+                // Label
+                ctx.fillStyle = "#000";
+                ctx.font = "12px sans-serif";
+                ctx.fillText(label, x0 + 5, y0 + 15);
+
+                // Line
+                ctx.beginPath();
+                ctx.strokeStyle = `hsl(${i * 45}, 70%, 50%)`;
+                ctx.lineWidth = 1;
+
+                for (let j = 0; j < buffer.length; j++) {
+                    const x = x0 + (j / buffer.length) * subplotW;
+                    const y = y0 + ((1 - (buffer[j] - min) / range) * subplotH);
+                    if (j === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+
+                ctx.stroke();
+            });
+        }
+
+        // ------------- Socket Handlers -------------
         socket.on('gsr_data', data => {
             const timestamp = Date.now();
-            const value = data.value;
-            gsrChart.data.datasets[0].data.push({ x: timestamp, y: value });
+            gsrChart.data.datasets[0].data.push({ x: timestamp, y: data.value });
         });
 
         socket.on('eeg_data', data => {
-            const timestamp = Date.now();
-            const value = data.data[0];  // First EEG channel
-            eegChart.data.datasets[0].data.push({ x: timestamp, y: value });
+            const values = data.data;
+            for (let i = 0; i < eegBuffers.length; i++) {
+                eegBuffers[i].push(values[i]);
+                if (eegBuffers[i].length > eegBufferLength) {
+                    eegBuffers[i].shift();
+                }
+            }
+            drawEEGSubplots();
         });
 
         socket.on('cognitive_state', data => {
             const timestamp = Date.now();
-            const values = data.values;
+            const values = data.state || data.values;
 
             for (const state of states) {
                 const dataset = cogChart.data.datasets.find(d => d.label === state);
@@ -187,8 +210,16 @@
                 }
             }
         });
-    </script>
+        // Flush time series charts every 30 seconds
+        //setInterval(() => {
+        //    console.log('🧹 Flushing time series buffers...');
+        //    gsrChart.data.datasets.forEach(ds => ds.data = []);
+        //    cogChart.data.datasets.forEach(ds => ds.data = []);
+        //    gsrChart.update('none');
+        //    cogChart.update('none');
+        //}, 10000);  // every 10s
 
+    </script>
 </body>
 
 </html>
