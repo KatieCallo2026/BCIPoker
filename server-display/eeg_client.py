@@ -54,7 +54,7 @@ def stream_eeg(socketio):
         if time.time() - last_state_time > EEG_STATE_INTERVAL:
             if all(len(ch) >= EEG_BUFFER_SIZE for ch in eeg_buffer.values()):
                 state = classify_state(eeg_buffer)
-                print("🧠 Cognitive state:", state)
+                #print("🧠 Cognitive state:", state)
                 socketio.emit('cognitive_state', {
                     'timestamp': datetime.utcnow().isoformat(),
                     'values': state

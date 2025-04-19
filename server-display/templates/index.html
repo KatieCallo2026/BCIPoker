@@ -18,12 +18,18 @@
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 
     <style>
+        body {
+            font-family: sans-serif;
+            margin: 30px;
+            background: #f5f7fa;
+            color: #111;
+        }
+
         canvas {
-            display: block;
-            max-width: 90%;
-            margin: 20px auto;
-            background: #f9f9f9;
+            background: #fff;
             border: 1px solid #ccc;
+            margin: 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -31,11 +37,24 @@
 <body>
     <h1>Live Biofeedback Dashboard</h1>
 
+    <!-- OLD - want side by side
     <h2>GSR (Galvanic Skin Response)</h2>
     <canvas id="gsrChart" width="600" height="200"></canvas>
 
     <h2>Cognitive State Intensities Over Time</h2>
     <canvas id="cogChart" width="600" height="300"></canvas>
+    -->
+
+    <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+        <div style="text-align: center;">
+            <h2>GSR (Galvanic Skin Response)</h2>
+            <canvas id="gsrChart" width="500" height="200"></canvas>
+        </div>
+        <div style="text-align: center;">
+            <h2>Cognitive State Intensities</h2>
+            <canvas id="cogChart" width="500" height="200"></canvas>
+        </div>
+    </div>
 
     <h2>EEG Channels (Live - Subplots)</h2>
     <canvas id="eegSubplotCanvas" width="900" height="600"></canvas>
@@ -218,6 +237,10 @@
         //    gsrChart.update('none');
         //    cogChart.update('none');
         //}, 10000);  // every 10s
+
+        if (!subplotCanvas) {
+            console.error("❌ eegSubplotCanvas not found in DOM!");
+        }
 
     </script>
 </body>
