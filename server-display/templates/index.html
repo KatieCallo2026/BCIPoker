@@ -25,48 +25,143 @@
             color: #111;
         }
 
-        canvas {
-            background: #fff;
-            border: 1px solid #ccc;
-            margin: 10px;
+        .header-box {
+            background-color: #e9f2fb;
+            border: 2px solid #2176c1;
+            border-radius: 10px;
+            padding: 10px 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            margin-left: 10px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        #dealerCards img {
-            height: 220px;
+        h1 {
+            color: #2176c1;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        h2 {
+            background-color: #e9f2fb;
+            padding: 4px 10px;
+            display: inline-block;
+            font-weight: bold;
+            color: #2176c1;
+            font-size: 1.8em;
+            border: none;
+            border-radius: 6px;
+        }
+
+        #dealerCards img,
+        .player-card {
+            background-color: white;
+            height: 210px;
             border: 1px solid #aaa;
             border-radius: 20px;
+            padding: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-card,
+        #dealerCards img {
+            background-color: white;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .row-box {
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .card-box {
+            background-color: #e9f2fb;
+            border: 2px solid #2176c1;
+            border-radius: 10px;
+            padding: 10px 10px;
+            margin: 10px;
+	    margin-bottom: 20px;
+            flex: 1 1 45%;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            min-height: 420px;
+            max-height: 420px;
+            overflow: hidden;
+            background-color: #e9f2fb;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        /* General canvas reset */
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* For main line charts */
+        .chart-large-1 {
+            width: 100%;
+            height: 100%;
+            max-width: 750px;
+            min-height: 400px;
+        }
+
+        /* For EEG chart */
+        .chart-medium {
+            max-width: 1000px;
+            aspect-ratio: 3 / 1;
+            width: 100%;
+            height: 280px;
         }
     </style>
 </head>
 
 <body>
-    <h1>PLAYER Biofeedback Dashboard</h1>
-
-    <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
-        <div style="text-align: center;">
-            <h2>GSR (Galvanic Skin Response)</h2>
-            <canvas id="gsrChart" width="800" height="350"></canvas>
-        </div>
-        <div style="text-align: center;">
-            <h2>Cognitive State Intensities</h2>
-            <canvas id="cogChart" width="800" height="350"></canvas>
-        </div>
+    <div class="header-box">
+        <h1>PLAYER Biofeedback Dashboard</h1>
     </div>
 
-    <div style="display: flex; justify-content: space-around; align-items: flex-start; flex-wrap: wrap;">
-        <div style="text-align: center;">
-            <h2>EEG Channels (Live - Subplots)</h2>
-            <canvas id="eegSubplotCanvas" width="750" height="300"></canvas>
+
+    <!-- TOP ROW -->
+    <div class="row-box">
+        <div class="card-box">
+            <h2>GSR (Galvanic Skin Response)</h2>
+            <div style="flex-grow: 1;">
+                <canvas id="gsrChart" class="chart-large-1"></canvas>
+            </div>
         </div>
 
-        <div style="text-align: center;">
-            <h2>Dealer</h2>
-            <div id="dealerCards" style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-                <!-- Cards will be injected here -->
+        <div class="card-box">
+            <h2>Cognitive State Intensities</h2>
+            <div style="flex-grow: 1;">
+                <canvas id="cogChart" class="chart-large-1"></canvas>
             </div>
         </div>
     </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="row-box">
+        <div class="card-box">
+            <h2>EEG Channels (Live - Subplots)</h2>
+            <canvas id="eegSubplotCanvas" class="chart-medium"></canvas>
+        </div>
+
+        <div class="card-box">
+            <h2>Dealer</h2>
+            <div id="dealerCards" style="display: flex; justify-content: center; gap: 10px;"></div>
+        </div>
+    </div>
+
 
     <script>
         const socket = io();
@@ -164,6 +259,18 @@
         const subplotCanvas = document.getElementById('eegSubplotCanvas');
         const ctx = subplotCanvas.getContext('2d');
 
+        function scaleCanvas(canvas) {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+        }
+        scaleCanvas(subplotCanvas);
+        drawEEGSubplots();
+
         function drawEEGSubplots() {
             const w = subplotCanvas.width;
             const h = subplotCanvas.height;
@@ -217,6 +324,10 @@
             img.src = `/static/cards/BACK.png`;
             container.appendChild(img);
         }
+
+        window.addEventListener('resize', () => {
+            scaleCanvas(subplotCanvas);
+        });
 
         // ------------- Socket Handlers -------------
         socket.on('gsr_data', data => {
