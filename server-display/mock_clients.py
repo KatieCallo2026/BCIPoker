@@ -55,7 +55,6 @@ def stream_eeg(socketio):
         # classify every second
         if time.time() - last_state_time > STATE_INTERVAL:
             state = classify_state(eeg_buffer)
-            print("Mock state:", state)
             socketio.emit('cognitive_state', {
                 'timestamp': datetime.utcnow().isoformat(),
                 'state': state
