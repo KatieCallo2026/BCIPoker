@@ -122,6 +122,21 @@
             width: 100%;
             height: 280px;
         }
+
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+        }
+
+        .logo-container img {
+            height: 75px;
+            margin-right: 10px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 
@@ -130,6 +145,9 @@
         <h1>PLAYER Biofeedback Dashboard</h1>
     </div>
 
+    <div class="logo-container">
+        <img src="/static/crux-logo.png" alt="Logo">
+    </div>
 
     <!-- TOP ROW -->
     <div class="row-box">
@@ -170,13 +188,23 @@
         const gsrChart = new Chart(gsrCtx, {
             type: 'line',
             data: {
-                datasets: [{
-                    label: 'GSR',
-                    data: [],
-                    borderWidth: 1,
-                    borderColor: 'rgba(75,192,192,1)',
-                    fill: false,
-                }]
+                datasets: [
+                    {
+                        label: 'GSR',
+                        data: [],
+                        borderWidth: 1,
+                        borderColor: 'rgba(75,192,192,1)',
+                        fill: false
+                    },
+                    {
+                        label: 'Avg (Visible)',
+                        data: [],
+                        borderDash: [6, 6],
+                        borderWidth: 2,
+                        borderColor: 'orange',
+                        fill: false
+                    }
+                ]
             },
             options: {
                 responsive: true,
@@ -185,16 +213,44 @@
                     x: {
                         type: 'realtime',
                         realtime: {
-                            duration: 8000, // last 8 secs
+                            duration: 8000,
                             delay: 1000,
+                            frameRate: 30,
+                            onRefresh: chart => {
+                                const gsrDataset = chart.data.datasets[0].data;
+                                const now = Date.now();
+                                const cutoff = now - 10000;
+
+                                // Get visible points
+                                const visiblePoints = gsrDataset.filter(p => p.x >= cutoff);
+
+                                if (visiblePoints.length < 10) return;
+
+                                const avg =
+                                    visiblePoints.reduce((sum, p) => sum + p.y, 0) /
+                                    (visiblePoints.length || 1);
+
+                                // Add flat average line spanning the window
+                                chart.data.datasets[1].data = [
+                                    { x: cutoff, y: avg },
+                                    { x: now, y: avg }
+                                ];
+                            }
                         }
                     },
                     y: {
-                        beginAtZero: true
+                        beginAtZero: false, //  dynamic scaling
+                        ticks: {
+                            autoSkip: true
+                        }
                     }
                 },
                 plugins: {
-                    legend: { display: true }
+                    legend: {
+                        labels: {
+                            font: { size: 20 }
+                        }
+                    }
                 }
             }
         });
@@ -237,7 +293,8 @@
                         }
                     },
                     y: {
-                        beginAtZero: true,
+                        beginAtZero: false,
+                        ticks: { autoSkip: true },
                         max: 1.0,
                         title: {
                             display: true,
@@ -246,11 +303,14 @@
                     }
                 },
                 plugins: {
-                    legend: { display: true }
+                    legend: {
+                        labels: {
+                            font: { size: 20 }
+                        }
+                    }
                 }
             }
         });
-
         // ------------- EEG Subplot Canvas (Custom Rendered) -------------
         const eegChannels = ['FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8'];
         const eegBufferLength = 250; // ~1s of data at 250Hz
