@@ -37,11 +37,11 @@ This event blends entertainment and education, highlighting biometric tech while
 
 **Where do we get data, and what do we do with it?**
 
-![Whoops! Should be the data pipeline here](Graphics/data-pipeline-v1.png)
+![Whoops! Should be the data pipeline here](Graphics/data-pipeline-v2.png)
 
 # Display
 
-![Should be our screen display here!](Graphics/per-player-screen.png)
+![Should be our screen display here!](Graphics/demo-gui.png)
 
 # Credits 
 
