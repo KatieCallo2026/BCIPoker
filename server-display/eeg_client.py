@@ -1,8 +1,11 @@
 from pylsl import StreamInlet, resolve_stream
 from datetime import datetime
 import time
-from cog_states import classify_state # cog state funcs
-from config import EEG_BUFFER_SIZE, EEG_STATE_INTERVAL  #import config values
+import csv
+import os
+from cog_states import classify_state
+from config import EEG_BUFFER_SIZE, EEG_STATE_INTERVAL
+
 print("📦 eeg_client.py imported")
 
 ##################################################
@@ -10,14 +13,11 @@ print("📦 eeg_client.py imported")
 # now has cognitive state logic
 ##################################################
 
-# set up circular buffer with channel labels
+# expected channels from unicorn headset
 channel_labels = ['FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8']
-eeg_buffer = {label: [] for label in channel_labels} 
+# set up circular buffer with channel labels
+eeg_buffer = {label: [] for label in channel_labels}
 last_state_time = time.time()
-
-# data sample columns (full thing):
-# [ 'FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8', 'AccX','AccY','AccZ', 'Gyro1','Gyro2','Gyro3',  'Battery','Counter','Validation']
-
 
 def stream_eeg(socketio):
     print("🔍 Resolving LSL stream...")
@@ -34,37 +34,52 @@ def stream_eeg(socketio):
 
     has_received_data = False 
     stream_start_time = time.time()
-    
-    while True:
-        sample, timestamp = inlet.pull_sample(timeout=0.0)
-        if not sample: 
-            if not has_received_data and time.time() - stream_start_time > 3:
-                print("⚠️  EEG stream open but no data received. It might not be started.")
-                stream_start_time = float('inf')  # prevent repeat warning
-            time.sleep(0.001)
-            continue
-        has_received_data = True 
-        
-        # fill buffer
-        for i, label in enumerate(channel_labels):
-            eeg_buffer[label].append(sample[i])
-            if len(eeg_buffer[label]) > EEG_BUFFER_SIZE:
-                eeg_buffer[label].pop(0)
 
-        # emit the sample for live plot (first channel)
-        socketio.emit('eeg_data', {
-            'timestamp': datetime.utcnow().isoformat(),
-            'data': sample  # raw values for now
-        })
+    # Prepare logging directory and file
+    filename = f"eeg_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    log_path = os.path.join("logs", filename)
+    os.makedirs("logs", exist_ok=True)
 
-        # classify cognitive state every 1s
-        if time.time() - last_state_time > EEG_STATE_INTERVAL:
-            if all(len(ch) >= EEG_BUFFER_SIZE for ch in eeg_buffer.values()):
-                state = classify_state(eeg_buffer)
-                #print("🧠 Cognitive state:", state)
-                socketio.emit('cognitive_state', {
-                    'timestamp': datetime.utcnow().isoformat(),
-                    'values': state
-                })
-            last_state_time = time.time()
-        
+    with open(log_path, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        # Include both UTC and local timestamps in header
+        writer.writerow(['utc_timestamp', 'local_timestamp'] + channel_labels)
+        print(f"Logging EEG data to {log_path}")
+
+        while True:
+            sample, timestamp = inlet.pull_sample(timeout=0.0)
+            if not sample:
+                if not has_received_data and time.time() - stream_start_time > 3:
+                    print("⚠️  EEG stream open but no data received. It might not be started.")
+                    stream_start_time = float('inf')
+                time.sleep(0.001)
+                continue
+
+            has_received_data = True
+
+            # Save timestamped sample to CSV
+            utc_time = datetime.utcnow().isoformat()
+            local_time = datetime.now().isoformat()
+            writer.writerow([utc_time, local_time] + sample[:len(channel_labels)])
+
+            # Fill buffer for real-time classification
+            for i, label in enumerate(channel_labels):
+                eeg_buffer[label].append(sample[i])
+                if len(eeg_buffer[label]) > EEG_BUFFER_SIZE:
+                    eeg_buffer[label].pop(0)
+
+            # Emit data for live plot
+            socketio.emit('eeg_data', {
+                'timestamp': utc_time,
+                'data': sample
+            })
+
+            # Classify cognitive state periodically
+            if time.time() - last_state_time > EEG_STATE_INTERVAL:
+                if all(len(ch) >= EEG_BUFFER_SIZE for ch in eeg_buffer.values()):
+                    state = classify_state(eeg_buffer)
+                    socketio.emit('cognitive_state', {
+                        'timestamp': utc_time,
+                        'values': state
+                    })
+                last_state_time = time.time()

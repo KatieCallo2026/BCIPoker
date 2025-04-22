@@ -27,7 +27,7 @@
 
         .header-box {
             background-color: #e9f2fb;
-            border: 2px solid #2176c1;
+            border: 2px solid #aed5f9;
             border-radius: 10px;
             padding: 10px 20px;
             display: inline-block;
@@ -37,9 +37,10 @@
         }
 
         h1 {
-            color: #2176c1;
+            color: #3597ec;
             font-weight: bold;
             margin: 0;
+            font-family: 'Franklin Gothic Medium', sans-serif;
         }
 
         h2 {
@@ -47,8 +48,9 @@
             padding: 4px 10px;
             display: inline-block;
             font-weight: bold;
-            color: #2176c1;
+            color: #3597ec;
             font-size: 1.8em;
+            font-family: 'Franklin Gothic Medium', sans-serif;
             border: none;
             border-radius: 6px;
         }
@@ -81,8 +83,8 @@
         }
 
         .card-box {
-            background-color: #e9f2fb;
-            border: 2px solid #2176c1;
+            background-color: #f7fbff;
+            border: 2px solid #aed5f9d1;
             border-radius: 10px;
             padding: 10px 10px;
             margin: 10px;
@@ -137,6 +139,23 @@
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
+
+        .logo-wrapper {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .logo-wrapper img {
+            height: 75px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 
@@ -145,8 +164,9 @@
         <h1>PLAYER Biofeedback Dashboard</h1>
     </div>
 
-    <div class="logo-container">
-        <img src="/static/crux-logo.png" alt="Logo">
+    <div class="logo-wrapper">
+        <img src="/static/crux-logo.png" alt="CruX Logo">
+        <img src="/static/logo.png" alt="Other Logo">
     </div>
 
     <!-- TOP ROW -->
