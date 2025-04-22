@@ -6,7 +6,7 @@ import serial
 # !pip install bleak
 
 
-def stream_gsr_usb(socketio,useSocketio=True):
+def stream_gsr(socketio,useSocketio=True):
     '''Stream gsr data to serial port'''
     
     # In Windows Powershell:

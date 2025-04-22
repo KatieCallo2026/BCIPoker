@@ -9,9 +9,9 @@
 # -----------------------------------------------
 
 # Whether to use mock EEG data (True = simulated, False = LSL )
-USE_MOCK_EEG = True
+USE_MOCK_EEG = False
 # Whether to use mock GSR data (True = simulated, False = Arduino)
-USE_MOCK_GSR = True
+USE_MOCK_GSR = False
 
 
 # -----------------------------------------------
