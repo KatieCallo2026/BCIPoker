@@ -34,3 +34,10 @@ EEG_STATE_INTERVAL = 0.5            # seconds between state classifications
 
 # How often to sample and emit GSR data (in seconds) 
 GSR_UPDATE_INTERVAL = 0.05          # 20Hz = every 50 ms, smooth enough for skin conductance
+
+
+# -----------------------------------------------
+# OTHER SETTINGS
+# -----------------------------------------------
+
+ARTIFACT_FLAG = True
