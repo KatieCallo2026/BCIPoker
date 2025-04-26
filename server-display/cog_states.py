@@ -4,6 +4,7 @@
 
 import numpy as np
 from scipy.signal import butter, filtfilt, iirnotch
+from config import ARTIFACT_FLAG
 
 # freq bandpower helper func
 def bandpower(data, fs, band):
@@ -27,6 +28,10 @@ def notch_filter(data, fs, freq=60.0, quality=30): # 60 Hz in US
     b, a = iirnotch(w0, quality)
     filtered_data = filtfilt(b, a, data)
     return filtered_data
+
+def has_artifact(data, threshold=100.0):
+    """Simple threshold-based artifact rejection"""
+    return np.any(np.abs(data) > threshold)
 
 # classify cognitive states
 def classify_state(eeg_buffer, fs=250):
@@ -59,6 +64,10 @@ def classify_state(eeg_buffer, fs=250):
         filtered_ch = bandpass_filter(np.array(ch_data), fs) 
         # notch filtering
         filtered_ch = notch_filter(filtered_ch, fs)
+
+        if ARTIFACT_FLAG and has_artifact(filtered_ch):
+            continue  # skip this channel if artifact detected
+
 
         alpha.append(bandpower(ch_data, fs, (8, 12)))
         theta.append(bandpower(ch_data, fs, (4, 8)))
