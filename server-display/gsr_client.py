@@ -30,13 +30,13 @@ def stream_gsr(socketio,useSocketio=True):
     )
 
     while(True):
-        val = int(ser.readline().strip())
-        resistance = (1024+(2*val)) * (1/(512-val))
-        val = (1/resistance) * 100
-        if val is not None and useSocketio:
+        val_read = int(ser.readline().strip())
+        resistance = (1024+(2*val_read)) * (1/(512-val_read))
+        val_res = (1/resistance) * 100
+        if val_read is not None and useSocketio:
             socketio.emit('gsr_data', {
                 'timestamp': datetime.utcnow().isoformat(),
-                'value': val
+                'value': val_res
             })
 
     ser.close()

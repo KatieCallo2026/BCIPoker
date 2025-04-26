@@ -3,6 +3,7 @@
 #################################################
 
 import numpy as np
+from scipy.signal import butter, filtfilt
 
 # freq bandpower helper func
 def bandpower(data, fs, band):
@@ -10,6 +11,15 @@ def bandpower(data, fs, band):
     fft = np.abs(np.fft.rfft(data))**2
     idx = np.logical_and(freqs >= band[0], freqs <= band[1])
     return np.sum(fft[idx])
+
+def bandpass_filter(data, fs, lowcut=1.0, highcut=40.0, order=4):
+    nyquist = 0.5 * fs
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    b, a = butter(order, [low, high], btype='band') # def the filter
+    filtered_data = filtfilt(b, a, data) # fwd and bckwrd for zero-phase distortion
+    return filtered_data
+
 
 # classify cognitive states
 def classify_state(eeg_buffer, fs=250):
@@ -37,6 +47,10 @@ def classify_state(eeg_buffer, fs=250):
 
     for ch_data in eeg_buffer.values():
         if len(ch_data) < fs: continue  # skip partial buffers
+
+        # bandpass filter
+        filtered_ch = bandpass_filter(np.array(ch_data), fs) 
+
         alpha.append(bandpower(ch_data, fs, (8, 12)))
         theta.append(bandpower(ch_data, fs, (4, 8)))
         delta.append(bandpower(ch_data, fs, (1, 4)))
