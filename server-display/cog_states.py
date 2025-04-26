@@ -3,7 +3,7 @@
 #################################################
 
 import numpy as np
-from scipy.signal import butter, filtfilt
+from scipy.signal import butter, filtfilt, iirnotch
 
 # freq bandpower helper func
 def bandpower(data, fs, band):
@@ -20,6 +20,13 @@ def bandpass_filter(data, fs, lowcut=1.0, highcut=40.0, order=4):
     filtered_data = filtfilt(b, a, data) # fwd and bckwrd for zero-phase distortion
     return filtered_data
 
+def notch_filter(data, fs, freq=60.0, quality=30): # 60 Hz in US
+    # quality factor: higher = narrower notch (30 is a typical value)
+    nyquist = 0.5 * fs
+    w0 = freq / nyquist
+    b, a = iirnotch(w0, quality)
+    filtered_data = filtfilt(b, a, data)
+    return filtered_data
 
 # classify cognitive states
 def classify_state(eeg_buffer, fs=250):
@@ -50,6 +57,8 @@ def classify_state(eeg_buffer, fs=250):
 
         # bandpass filter
         filtered_ch = bandpass_filter(np.array(ch_data), fs) 
+        # notch filtering
+        filtered_ch = notch_filter(filtered_ch, fs)
 
         alpha.append(bandpower(ch_data, fs, (8, 12)))
         theta.append(bandpower(ch_data, fs, (4, 8)))
