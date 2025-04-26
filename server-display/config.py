@@ -40,4 +40,5 @@ GSR_UPDATE_INTERVAL = 0.05          # 20Hz = every 50 ms, smooth enough for skin
 # OTHER SETTINGS
 # -----------------------------------------------
 
-ARTIFACT_FLAG = True
+ARTIFACT_FLAG = False
+EPCOH_FLAG = True
