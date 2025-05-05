@@ -40,7 +40,7 @@ def record_phase(phase_name, duration_sec, lsl_outfile):
 
     end_time = time.time()
     return {"phase": phase_name, "start": start_time, "end": end_time}
-1
+
 def run_experiment():
     pid = input("Participant ID: ").strip()
     folder = get_participant_folder(pid)
