@@ -21,15 +21,26 @@ def get_participant_folder(pid):
     path.mkdir(parents=True, exist_ok=True)
     return path
 
+import threading
+
 def record_phase(phase_name, duration_sec, lsl_outfile):
     log(f"--- Starting {phase_name.upper()} phase ({duration_sec} sec) ---")
     start_time = time.time()
+
+    if phase_name == "mist":
+        mist_thread = threading.Thread(target=mist_task.run, args=(duration_sec,))
+        mist_thread.start()
+
     lsl_record.start_recording(lsl_outfile, mock=MOCK_MODE)
     time.sleep(duration_sec)
     lsl_record.stop_recording()
+
+    if phase_name == "mist":
+        mist_thread.join()
+
     end_time = time.time()
     return {"phase": phase_name, "start": start_time, "end": end_time}
-
+1
 def run_experiment():
     pid = input("Participant ID: ").strip()
     folder = get_participant_folder(pid)
