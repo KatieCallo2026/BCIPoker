@@ -1,0 +1,21 @@
+{
+    "sampling_rate": 250,
+    "epoch_length_sec": 2,
+    "bandpass_hz": [ 2, 48 ],
+    "notch_hz": [ 48, 52 ],
+    "artifact_threshold_uv": 75,
+    "spsl_scale": [ 1, 5 ],
+    "phases": [
+        {   "name": "rest",  "duration_sec": 5 },
+        {   "name": "mist", "duration_sec": 5 },
+        {   "name": "relax", "duration_sec": 5 }
+    ],
+    "spsl_prompts": {
+        "rest": [120],
+        "mist": [120,240,360],
+        "relax": [120,300]
+    },
+    "output_dir": "data/",
+    "eeg_channels": ["1","2","3","4","5","6","7","8"],
+    "mock_mode": true
+} 
