@@ -3,9 +3,9 @@ import time
 import json
 import datetime
 from pathlib import Path
-import mist_task
-import spsl_prompt
-import lsl_record
+import scripts.mist_task as mist_task
+import scripts.spsl_prompt as spsl_prompt
+import scripts.lsl_record as lsl_record
 from configparser import ConfigParser
 
 # Load config
