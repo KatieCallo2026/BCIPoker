@@ -29,12 +29,12 @@ def start_recording(output_path, mock=False):
         return
     
     if mock:
-       print("⚠️ MOCK MODE: Streaming fake EEG data.")
+       print(">MOCK MODE: Streaming fake EEG data.")
     else:
-        print("🔍 Resolving EEG LSL stream...")
+        print(">Resolving EEG LSL stream...")
         streams = resolve_byprop('type', 'EEG')
         inlet = StreamInlet(streams[0])
-        print("✅ LSL stream found.")
+        print("> LSL stream found.")
 
     log_file = open(output_path, mode='w', newline='')
     writer = csv.writer(log_file)
