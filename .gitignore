@@ -3,3 +3,4 @@ __pycache__
 *.sh
 logs/*
 Stress-Detection/data
+run.bat

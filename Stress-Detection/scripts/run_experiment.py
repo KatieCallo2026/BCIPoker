@@ -1,3 +1,4 @@
+# Updated run_experiment.py
 import os
 import time
 import json
@@ -21,25 +22,25 @@ def get_participant_folder(pid):
     path.mkdir(parents=True, exist_ok=True)
     return path
 
-import threading
-
-def record_phase(phase_name, duration_sec, lsl_outfile):
+def record_phase(phase_name, duration_sec, lsl_outfile, pid):
     log(f"--- Starting {phase_name.upper()} phase ({duration_sec} sec) ---")
     start_time = time.time()
 
-    if phase_name == "mist":
-        mist_thread = threading.Thread(target=mist_task.run, args=(duration_sec,))
-        mist_thread.start()
-
+    # Start EEG recording
     lsl_record.start_recording(lsl_outfile, mock=MOCK_MODE)
-    time.sleep(duration_sec)
+
+    if "mist" in phase_name:
+        mist_task.run(duration_sec, difficulty=phase_name)
+    else:
+        time.sleep(duration_sec)
+
     lsl_record.stop_recording()
-
-    if phase_name == "mist":
-        mist_thread.join()
-
     end_time = time.time()
-    return {"phase": phase_name, "start": start_time, "end": end_time}
+
+    # Ask SPSL at end of each atomic phase
+    rating = spsl_prompt.ask_scale(pid, phase=phase_name, time_sec=duration_sec)
+
+    return {"phase": phase_name, "start": start_time, "end": end_time}, rating
 
 def run_experiment():
     pid = input("Participant ID: ").strip()
@@ -52,18 +53,9 @@ def run_experiment():
         name = phase["name"]
         duration = phase["duration_sec"]
 
-        # Prepare EEG recording
-        phase_info = record_phase(name, duration, eeg_outfile)
+        phase_info, spsl_entry = record_phase(name, duration, eeg_outfile, pid)
         timestamp_log.append(phase_info)
-
-        if name == "mist":
-            mist_task.run(duration)  # purely visual / print-based for now
-
-        # After EEG ends, prompt for SPSL (to avoid recording artifacts)
-        for prompt_time in CONFIG["spsl_prompts"].get(name, []):
-            log(f"SPSL prompt for phase {name} at {prompt_time}s")
-            rating = spsl_prompt.ask_scale(pid, phase=name, time_sec=prompt_time)
-            spsl_log.append(rating)
+        spsl_log.append(spsl_entry)
 
     # Save logs
     with open(folder / "spsl_responses.csv", "w") as f:
@@ -78,3 +70,4 @@ def run_experiment():
 
 if __name__ == "__main__":
     run_experiment()
+    

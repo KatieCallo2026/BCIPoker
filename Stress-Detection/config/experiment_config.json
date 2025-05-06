@@ -6,14 +6,19 @@
     "artifact_threshold_uv": 75,
     "spsl_scale": [ 1, 5 ],
     "phases": [
-        {   "name": "rest",  "duration_sec": 120 },
-        {   "name": "mist", "duration_sec": 360 },
-        {   "name": "relax", "duration_sec": 180 }
+        { "name": "rest_1", "duration_sec": 12 },
+        { "name": "mist_1", "duration_sec": 12 },
+        { "name": "mist_2", "duration_sec": 12 },
+        { "name": "mist_3", "duration_sec": 12 },
+        { "name": "relax_1", "duration_sec": 9 },
+        { "name": "relax_2", "duration_sec": 9 }
     ],
     "spsl_prompts": {
-        "rest": [120],
-        "mist": [120,240,360],
-        "relax": [120,300]
+        "rest": [12],
+        "mist_1": [12],
+        "mist_2": [12],
+        "mist_3": [12],
+        "relax": [12,18]
     },
     "output_dir": "data/",
     "eeg_channels": ["AF3","AF4","F3","F4","T7","T8","P7","P8"],
