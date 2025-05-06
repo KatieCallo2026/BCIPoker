@@ -53,10 +53,10 @@ def run_pipeline(pid):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--experiment", action="store_true", help="Run data collection experiment")
+    parser.add_argument("--e", action="store_true", help="Run data collection experiment")
     args = parser.parse_args()
 
-    if args.experiment:
+    if args.e:
         run_experiment()
     else:
         pid = input("Enter participant ID: ").strip()

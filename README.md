@@ -39,7 +39,7 @@ This event blends entertainment and education, highlighting biometric tech while
 
 ![Whoops! Should be the data pipeline here](Graphics/data-pipeline-v2.png)
 
-# Display
+# Demo Display
 
 ![Should be our screen display here!](Graphics/demo-gui.png)
 
@@ -58,3 +58,13 @@ This event blends entertainment and education, highlighting biometric tech while
 - Natalie Sim
 - Simran Tawari
 - Alizee Wouters
+
+--- 
+
+Running Stress Detection Data Collection
+
+```
+conda activate cleanlsl
+cd .\Stress-Detection\
+python main.py --e
+```
