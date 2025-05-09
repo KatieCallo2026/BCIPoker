@@ -1,4 +1,4 @@
-from pylsl import StreamInlet, resolve_byprop
+from pylsl import StreamInlet, resolve_streams
 from datetime import datetime
 import threading
 import random
@@ -32,7 +32,8 @@ def start_recording(output_path, mock=False):
        print(">MOCK MODE: Streaming fake EEG data.")
     else:
         print(">Resolving EEG LSL stream...")
-        streams = resolve_byprop('type', 'EEG')
+        streams = resolve_streams()
+        print("> Resolving stream.")
         inlet = StreamInlet(streams[0])
         print("> LSL stream found.")
 
@@ -52,7 +53,7 @@ def stop_recording():
         thread.join()
     if log_file is not None:
         log_file.close()
-    print(">Recording stopped.")
+    print("> Recording paused.")
 
 def _record_loop():
     global recording, inlet, writer

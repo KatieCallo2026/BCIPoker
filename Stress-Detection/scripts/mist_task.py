@@ -1,5 +1,8 @@
 import time
 import random
+from threading import Thread
+from tqdm import tqdm
+import sys
 
 def generate_question(level):
     if level == "easy":
@@ -19,8 +22,29 @@ def generate_question(level):
             a = random.randint(30, 60)
             b = random.randint(30, 60)
     question = f"{a} {op} {b}"
-    answer = eval(question)
+    answer = eval(f"{a} {op} {b}")
     return question, answer
+
+def timed_input(prompt, timeout=5):
+    user_input = [None]
+
+    def get_input():
+        user_input[0] = input(prompt)
+
+    thread = Thread(target=get_input)
+    thread.daemon = True
+    thread.start()
+
+    for i in range(timeout):
+        if user_input[0] is not None:
+            break
+        print(f"Time remaining: {timeout - i}s", end='\r', flush=True)
+        time.sleep(1)
+
+    if thread.is_alive():
+        print("\n⏱ Too slow!")
+        return None
+    return user_input[0]
 
 def run(duration_sec=60, difficulty="mist_1", timed=True):
     print(f"\nStarting MIST Task for {duration_sec} seconds...")
@@ -39,14 +63,12 @@ def run(duration_sec=60, difficulty="mist_1", timed=True):
         elapsed = time.time() - start
         question, answer = generate_question(level)
         print(f"\nSolve: {question}")
-        t0 = time.time()
+
+        user_input = timed_input("Your answer: ", timeout=5)
 
         try:
-            user_input = input("Your answer: ")
-            response_time = time.time() - t0
-
-            if timed and response_time > 5:
-                print("\u23F1 Too slow!")
+            if user_input is None:
+                pass  # too slow, skip
             elif int(user_input.strip()) == answer:
                 print("\u2705 Correct!")
                 correct += 1
