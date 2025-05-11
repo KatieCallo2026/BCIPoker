@@ -46,19 +46,17 @@ def compute_bandpower(buffer, fs):
 def stream_mock_data(socketio, eeg_channels):
     print("[EEG] Using MOCK EEG data")
     while True:
-        eeg_data = [round(random.uniform(-40, 40), 2) for _ in eeg_channels]
+        buffer = np.random.normal(loc=0, scale=20, size=(WINDOW_SIZE, len(eeg_channels)))
+        eeg_data = buffer[-1].tolist() #eeg_data = [round(random.uniform(-40, 40), 2) for _ in eeg_channels]
         gsr_value = round(random.uniform(0.01, 0.05), 4)
         stress_level = random.choice(['Low', 'Medium', 'High'])
         lie_status = random.choice(['Truth', 'Lie'])
+        bandpower = compute_bandpower(buffer, SAMPLE_RATE)
 
         socketio.emit('eeg_data', {'data': eeg_data})
         socketio.emit('gsr_data', {'value': gsr_value})
         socketio.emit('stress_detection', {'level': stress_level})
         socketio.emit('lie_detected', {'status': lie_status})
-
-        buffer = np.tile(np.array(eeg_data), (WINDOW_SIZE, 1))
-        bandpower = compute_bandpower(buffer, SAMPLE_RATE)
-        
         socketio.emit('bandpower_data', bandpower)
 
         time.sleep(0.1)
@@ -90,17 +88,17 @@ def stream_real_eeg(socketio, eeg_channels):
             now = time.time()
             
             if buffer_index >= WINDOW_SIZE and (time.time() - last_stress_update >= 3.0):
-                bandpower = compute_bandpower(eeg_buffer, SAMPLE_RATE)
-                socketio.emit('bandpower_data', bandpower)
 
                 # Send other mock stats
                 gsr_value = round(random.uniform(0.01, 0.05), 4)
                 stress_level = random.choice(['Low', 'Medium', 'High'])
                 lie_status = random.choice(['Truth', 'Lie'])
+                bandpower = compute_bandpower(eeg_buffer, SAMPLE_RATE)
     
                 socketio.emit('gsr_data', {'value': gsr_value})
                 socketio.emit('stress_detection', {'level': stress_level})
                 socketio.emit('lie_detected', {'status': lie_status})
+                socketio.emit('bandpower_data', bandpower)
 
                 last_stress_update = time.time()
 
