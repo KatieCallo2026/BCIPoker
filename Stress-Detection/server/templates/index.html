@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>GSR + EEG Monitor</title>
+
+    <!-- Core libs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Luxon for time handling -->
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+
+    <!-- Realtime plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 30px;
+            background: #f5f7fa;
+            color: #111;
+        }
+
+        .header-box {
+            background-color: #e9f2fb;
+            border: 2px solid #aed5f9;
+            border-radius: 10px;
+            padding: 10px 20px;
+            display: inline-block;
+            margin-bottom: 0px;
+            margin-left: 10px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #3597ec;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        h2 {
+            background-color: #e9f2fb;
+            padding: 4px 10px;
+            display: inline-block;
+            font-weight: bold;
+            color: #3597ec;
+            font-size: 1.8em;
+            font-family: 'Franklin Gothic Medium', sans-serif;
+            border: none;
+            border-radius: 6px;
+        }
+
+        #dealerCards img,
+        .player-card {
+            background-color: white;
+            height: 210px;
+            border: 1px solid #aaa;
+            border-radius: 20px;
+            padding: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-card,
+        #dealerCards img {
+            background-color: white;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .row-box {
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .card-box {
+            background-color: #f7fbff;
+            border: 2px solid #aed5f9d1;
+            border-radius: 10px;
+            padding: 10px 10px;
+            margin: 10px;
+            margin-bottom: 10px;
+            flex: 1 1 45%;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            overflow: hidden;
+            background-color: #e9f2fb;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        /* General canvas reset */
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* For main line charts */
+        .chart-large-1 {
+            width: 100%;
+            height: 100%;
+            margin-right: 30px;
+            max-width: 900px;
+            min-height: 400px;
+        }
+
+        /* For EEG chart */
+        .chart-medium {
+            max-width: 1000px;
+            aspect-ratio: 3 / 1;
+            width: 100%;
+            height: 280px;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+        }
+
+        .logo-container img {
+            height: 75px;
+            margin-right: 10px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-wrapper {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .logo-wrapper img {
+            height: 75px;
+            width: auto;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-box">
+        <h1>Biofeedback Dashboard</h1>
+    </div>
+
+    <div class="logo-wrapper">
+        <img src="/static/crux-logo.png" alt="CruX Logo">
+        <img src="/static/logo.png" alt="Other Logo">
+    </div>
+
+    <!-- TOP ROW -->
+    <div class="row-box">
+        <div class="card-box">
+            <h2>GSR (Galvanic Skin Response)</h2>
+            <div style="flex-grow: 1;">
+                <canvas id="gsrChart" class="chart-large-1"></canvas>
+            </div>
+        </div>
+
+        <div class="card-box">
+            <h2>Stress Detection (Predicted)</h2>
+            <div style="flex-grow: 1;">
+                <canvas id="stressChart" class="chart-large-1"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="row-box">
+        <div class="card-box">
+            <h2>EEG Channels (Live - Subplots)</h2>
+            <canvas id="eegSubplotCanvas" class="chart-medium"></canvas>
+        </div>
+
+        <div class="card-box">
+            <h2>Lie Detection (Mock)</h2>
+            <p id="lieStatus" style="font-size:2em; text-align:center; margin-top:30px;">Detecting...</p>
+        </div>
+    </div>
+
+
+    <script>
+
+        // Stress chart
+        const stressCtx = document.getElementById('stressChart').getContext('2d');
+        const stressChart = new Chart(stressCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'Stress Level',
+                    data: [],
+                    borderColor: 'red',
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                scales: {
+                    x: {
+                        type: 'realtime',
+                        realtime: {
+                            duration: 8000,
+                            delay: 1000
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 2,
+                        ticks: {
+                            stepSize: 1,
+                            callback: val => ['Low', 'Medium', 'High'][val] ?? val
+                        },
+                        title: {
+                            display: true,
+                            text: 'Stress Level'
+                        }
+                    }
+                }
+            }
+        });
+
+        // EEG chart stuff
+        const eegChannels = ['AF3', 'AF4', 'F3', 'F4', 'T7', 'T8', 'P7', 'P8'];
+        const eegBufferLength = 100;
+        const eegBuffers = eegChannels.map(() => []);
+        const subplotCanvas = document.getElementById('eegSubplotCanvas');
+        const ctx = subplotCanvas.getContext('2d');
+
+        function scaleCanvas(canvas) {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+        }
+        scaleCanvas(subplotCanvas);
+
+        function drawEEGSubplots() {
+            const w = subplotCanvas.width;
+            const h = subplotCanvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            const colCount = 4;
+            const rowCount = 2;
+            const subplotW = w / colCount;
+            const subplotH = h / rowCount;
+
+            eegChannels.forEach((label, i) => {
+                const col = i % colCount;
+                const row = Math.floor(i / colCount);
+                const x0 = col * subplotW;
+                const y0 = row * subplotH;
+
+                const buffer = eegBuffers[i];
+                if (buffer.length < 2) return;
+
+                const min = Math.min(...buffer);
+                const max = Math.max(...buffer);
+                const range = max - min || 1;
+
+                ctx.fillStyle = "#000";
+                ctx.font = "12px sans-serif";
+                ctx.fillText(label, x0 + 5, y0 + 15);
+
+                ctx.beginPath();
+                ctx.strokeStyle = `hsl(${i * 45}, 70%, 50%)`;
+                ctx.lineWidth = 1;
+
+                for (let j = 0; j < buffer.length; j++) {
+                    const x = x0 + (j / eegBufferLength) * subplotW;
+                    const y = y0 + ((1 - (buffer[j] - min) / range) * subplotH);
+                    if (j === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+
+                ctx.stroke();
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            scaleCanvas(subplotCanvas);
+        });
+
+        // GSR chart
+        const gsrCtx = document.getElementById('gsrChart').getContext('2d');
+        const gsrChart = new Chart(gsrCtx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'GSR',
+                    data: [],
+                    borderColor: 'rgba(75,192,192,1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: false,
+                scales: {
+                    x: {
+                        type: 'realtime',
+                        realtime: {
+                            duration: 8000,
+                            delay: 1000,
+                            frameRate: 30,
+                            pause: false,
+                            ttl: 20000,  // ensures old data is removed
+                            onRefresh: function (chart) {
+                                // Nothing needed here; we push externally via socket
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        suggestedMin: 0,
+                        suggestedMax: 0.05
+                    }
+                },
+                plugins: {
+                    streaming: true,
+                    legend: {
+                        labels: {
+                            font: { size: 14 }
+                        }
+                    }
+                }
+            }
+        });
+
+        // // // // // // // // // // // // // // // // // // // // // // // // //
+
+        //  SOCKET HANDLERS  //
+
+        const socket = io();
+        socket.on('connect', () => console.log('[Socket] Connected to server'));
+        socket.on('disconnect', () => console.warn('[Socket] Disconnected'));
+
+        // GSR chart update
+        socket.on('gsr_data', data => {
+            const timestamp = Date.now();
+            gsrChart.data.datasets[0].data.push({ x: timestamp, y: data.value });
+        });
+
+        // EEG data streaming
+        socket.on('eeg_data', data => {
+            const values = data.data;
+            for (let i = 0; i < eegBuffers.length; i++) {
+                eegBuffers[i].push(values[i]);
+                if (eegBuffers[i].length > eegBufferLength) {
+                    eegBuffers[i].shift();
+                }
+            }
+            drawEEGSubplots();
+        });
+
+        // Stress detection stream (simple scalar)
+        socket.on('stress_detection', data => {
+            const levelMap = { Low: 0, Medium: 1, High: 2 };
+            const value = levelMap[data.level];
+            const timestamp = Date.now();
+            stressChart.data.datasets[0].data.push({ x: timestamp, y: value });
+        });
+
+        // Lie detection stream (text)
+        socket.on('lie_detected', data => {
+            document.getElementById('lieStatus').textContent = data.status;
+        });
+    </script>
+
+
+</body>
+
+</html>

@@ -4,6 +4,9 @@ from threading import Thread
 from tqdm import tqdm
 import sys
 
+RED = "\033[91m"
+RESET = "\033[0m"
+
 def generate_question(level):
     if level == "easy":
         a = random.randint(1, 10)
@@ -25,26 +28,41 @@ def generate_question(level):
     answer = eval(f"{a} {op} {b}")
     return question, answer
 
-def timed_input(prompt, timeout=5):
-    user_input = [None]
+def timed_input(prompt="Answer: ", timeout=5):
+    import msvcrt  # Windows-specific
+    import sys
 
-    def get_input():
-        user_input[0] = input(prompt)
+    answer = ""
+    start_time = time.time()
 
-    thread = Thread(target=get_input)
-    thread.daemon = True
-    thread.start()
+    print("\n", end='')  # spacing
+    while True:
+        elapsed = time.time() - start_time
+        remaining = int(timeout - elapsed)
 
-    for i in range(timeout):
-        if user_input[0] is not None:
-            break
-        print(f"Time remaining: {timeout - i}s", end='\r', flush=True)
-        time.sleep(1)
+        if remaining < 0:
+            print("\r⏱ Time's up!                    ")
+            return None
 
-    if thread.is_alive():
-        print("\n⏱ Too slow!")
-        return None
-    return user_input[0]
+        # Timer color logic
+        timer_str = f"Time Remaining: {remaining}s{RESET}"
+
+        # Build the status line
+        status = f"\rTime Remaining: {remaining}s     Answer: {answer} "
+        print(status, end='', flush=True)
+
+        if msvcrt.kbhit():
+            char = msvcrt.getwche()
+            if char in '\r\n':  # Enter
+                print()  # Move to next line
+                return answer.strip()
+            elif char == '\b':  # Backspace
+                answer = answer[:-1]
+                print('\b \b', end='', flush=True)
+            elif char.isprintable():
+                answer += char
+
+        time.sleep(0.05)
 
 def run(duration_sec=60, difficulty="mist_1", timed=True):
     print(f"\nStarting MIST Task for {duration_sec} seconds...")
