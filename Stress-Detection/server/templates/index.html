@@ -243,7 +243,7 @@
 
         // EEG chart stuff
         const eegChannels = ['AF3', 'AF4', 'F3', 'F4', 'T7', 'T8', 'P7', 'P8'];
-        const eegBufferLength = 100;
+        const eegBufferLength = 150;
         const eegBuffers = eegChannels.map(() => []);
         const subplotCanvas = document.getElementById('eegSubplotCanvas');
         const ctx = subplotCanvas.getContext('2d');

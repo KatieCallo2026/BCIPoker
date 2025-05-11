@@ -8,7 +8,7 @@ from pylsl import StreamInlet, resolve_byprop
 import time, random
 import os
 
-USE_MOCK_EEG = True 
+USE_MOCK_EEG = False 
 USE_MOCK_GSR = True
 
 def stream_mock_data(socketio, eeg_channels):
@@ -35,20 +35,25 @@ def stream_real_eeg(socketio, eeg_channels):
     inlet = StreamInlet(streams[0])
     print("[EEG] EEG stream found. Streaming...")
 
+    last_stress_update = time.time()
+
     while True:
-        sample, timestamp = inlet.pull_sample(timeout=1.0)
+        sample, timestamp = inlet.pull_sample(timeout=0.0)
         if sample:
             eeg_data = sample[:len(eeg_channels)]
             socketio.emit('eeg_data', {'data': eeg_data})
 
-        gsr_value = round(random.uniform(0.01, 0.05), 4)
-        stress_level = random.choice(['Low', 'Medium', 'High'])
-        lie_status = random.choice(['Truth', 'Lie'])
+            now = time.time()
+            if now - last_stress_update >= 1.0:
+                gsr_value = round(random.uniform(0.01, 0.05), 4)
+                stress_level = random.choice(['Low', 'Medium', 'High'])
+                lie_status = random.choice(['Truth', 'Lie'])
 
-        socketio.emit('gsr_data', {'value': gsr_value})
-        socketio.emit('stress_detection', {'level': stress_level})
-        socketio.emit('lie_detected', {'status': lie_status})
-        time.sleep(0.1)
+                socketio.emit('gsr_data', {'value': gsr_value})
+                socketio.emit('stress_detection', {'level': stress_level})
+                socketio.emit('lie_detected', {'status': lie_status})
+                
+                last_stress_update = now
 
 from threading import Thread
 from server.gsr_stream import stream_gsr
