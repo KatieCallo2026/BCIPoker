@@ -8,7 +8,7 @@ from pylsl import StreamInlet, resolve_byprop
 import time, random
 import os
 
-USE_MOCK_EEG = False 
+USE_MOCK_EEG = True 
 USE_MOCK_GSR = True
 
 def stream_mock_data(socketio, eeg_channels):

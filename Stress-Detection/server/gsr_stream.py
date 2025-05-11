@@ -40,7 +40,7 @@ def stream_mock_gsr(socketio):
             'timestamp': datetime.utcnow().isoformat(),
             'value': val_res
         })
-        time.sleep(0.1)
+        time.sleep(0.02)
 
 def stream_gsr(socketio):
     if USE_MOCK_GSR:
