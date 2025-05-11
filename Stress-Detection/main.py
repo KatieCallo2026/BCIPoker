@@ -8,7 +8,7 @@ from processing.preprocess import preprocess_eeg
 from processing.feature_extraction import extract_features
 from processing.interpolate_labels import interpolate_labels
 from processing.label_alignment import align_labels_to_features
-
+from server.app import run_server 
 from scripts.run_experiment import run_experiment
 
 # Load config
@@ -23,6 +23,9 @@ def run_pipeline(pid):
     if not eeg_path.exists() or not spsl_path.exists():
         print(f"Missing data for participant {pid}.")
         return
+
+
+    print(f"> Running pipeline for {pid}")
 
     # Load EEG and preprocess
     print("Preprocessing EEG...")
@@ -54,10 +57,19 @@ def run_pipeline(pid):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--e", action="store_true", help="Run data collection experiment")
+    parser.add_argument("--p", type=str, metavar="PID", help="Run preprocessing for given participant ID")
+    parser.add_argument("--m", type=str, metavar="PID", help="Train model (placeholder)")
+    parser.add_argument("--s", action="store_true", help="Run real-time Flask dashboard server")  # NEW FLAG
+
     args = parser.parse_args()
 
     if args.e:
         run_experiment()
+    elif args.p:
+        run_pipeline(args.p)
+    elif args.m:
+        print(f"Model training not yet implemented for {args.m}.")
+    elif args.s:
+        run_server()
     else:
-        pid = input("Enter participant ID: ").strip()
-        run_pipeline(pid)
+        parser.print_help()
