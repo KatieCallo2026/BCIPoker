@@ -98,6 +98,18 @@ Runs the ral-time server display dashboard, including:
     - lie detection
 - displays all signals and predictions in the interactive GUI
 
+## Implementation Details
+
+For the live server gui, data streams are updated at different time points for efficient CPU load. Below is a summary of their update intervals and where they can be altered / toggled.
+
+| Feature      | Update Rate            | Where to Toggle                      |
+| ------------ | ---------------------- | ------------------------------------ |
+| EEG raw data | \~250Hz (every sample) | `stream_real_eeg()` — emit line      |
+| Bandpower    | Every 1s               | `if buffer_index >= ...` block       |
+| Stress/Lie   | Every 1s               | Same as bandpower block              |
+| GSR (Mock)   | Every 0.02s            | `stream_mock_gsr()` → `time.sleep()` |
+| GSR (Real)   | Every 0.1s             | `stream_real_gsr()` → `time.sleep()` |
+
 # Credits 
 
 - Fulati Aizihaer
