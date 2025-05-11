@@ -89,7 +89,7 @@ def stream_real_eeg(socketio, eeg_channels):
 
             now = time.time()
             
-            if buffer_index >= WINDOW_SIZE and (time.time() - last_stress_update >= 1.0):
+            if buffer_index >= WINDOW_SIZE and (time.time() - last_stress_update >= 3.0):
                 bandpower = compute_bandpower(eeg_buffer, SAMPLE_RATE)
                 socketio.emit('bandpower_data', bandpower)
 

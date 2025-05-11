@@ -155,6 +155,11 @@
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
+
+        .chart-fixed-height {
+            height: 200px !important;
+            max-height: 200px !important;
+        }
     </style>
 </head>
 
@@ -194,9 +199,16 @@
 
         <div class="card-box">
             <h2>Lie Detection + Bandpower</h2>
-            <p id="lieStatus" style="font-size:1.5em; text-align:center;">Detecting...</p>
-            <canvas id="bandpowerChart" style="height:200px;"></canvas>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="flex: 1; text-align: center;">
+                    <p id="lieStatus" style="font-size:2em; font-weight:bold; margin: 0;">Detecting...</p>
+                </div>
+                <div style="flex: 2;">
+                    <canvas id="bandpowerChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
         </div>
+
     </div>
 
 
@@ -212,7 +224,7 @@
                     data: [],
                     borderColor: 'red',
                     fill: false,
-                    tension: 0.3
+                    stepped: true
                 }]
             },
             options: {
@@ -260,6 +272,7 @@
         scaleCanvas(subplotCanvas);
 
         function drawEEGSubplots() {
+            scaleCanvas(subplotCanvas);
             const w = subplotCanvas.width;
             const h = subplotCanvas.height;
             ctx.clearRect(0, 0, w, h);
@@ -328,18 +341,23 @@
                         realtime: {
                             duration: 8000,
                             delay: 1000,
-                            frameRate: 30,
+                            frameRate: 15,
                             pause: false,
-                            ttl: 20000,  // ensures old data is removed
-                            onRefresh: function (chart) {
-                                // Nothing needed here; we push externally via socket
-                            }
+                            ttl: 20000
                         }
                     },
                     y: {
-                        beginAtZero: true,
-                        suggestedMin: 0,
-                        suggestedMax: 0.05
+                        // remove for auto scaling
+                        //min: 0,
+                        //max: 0.06,
+                        ticks: {
+                            precision: 4,
+                            maxTicksLimit: 5
+                        },
+                        title: {
+                            display: true,
+                            text: 'GSR Value'
+                        }
                     }
                 },
                 plugins: {
@@ -363,20 +381,55 @@
                 datasets: [{
                     label: 'Band Power',
                     data: [0, 0, 0, 0, 0],
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(153, 102, 255, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    barThickness: 30
                 }]
             },
             options: {
-                indexAxis: 'y',
                 animation: false,
                 responsive: true,
+                maintainAspectRatio: true,
                 scales: {
                     x: {
-                        beginAtZero: true
+                        // remove for auto scaling
+                        //min: 0,
+                        //max: 2,
+                        ticks: {
+                            precision: 2
+                        },
+                        title: {
+                            display: true,
+                            text: 'Frequency Band',
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Power'
+                        },
+                        ticks: {
+                            precision: 2
+                        }
                     }
                 },
                 plugins: {
-                    streaming: false
+                    legend: { display: false }
                 }
             }
         });
@@ -418,6 +471,7 @@
         // Lie detection stream (text)
         socket.on('lie_detected', data => {
             document.getElementById('lieStatus').textContent = data.status;
+            //chart.update('none');
         });
 
         // Bandpower stream

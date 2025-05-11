@@ -24,7 +24,7 @@ def stream_real_gsr(socketio):
                     'value': val_res
                 })
 
-                time.sleep(0.1)
+                time.sleep(0.05)
 
             except ValueError:
                 continue  # Skip bad data
@@ -40,7 +40,7 @@ def stream_mock_gsr(socketio):
             'timestamp': datetime.utcnow().isoformat(),
             'value': val_res
         })
-        time.sleep(0.02)
+        time.sleep(0.05)
 
 def stream_gsr(socketio):
     if USE_MOCK_GSR:
