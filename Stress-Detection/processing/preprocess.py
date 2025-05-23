@@ -20,8 +20,10 @@ def bandpass(data, fs, lowcut, highcut, order=4):
     b, a = butter(order, [lowcut / nyq, highcut / nyq], btype='band')
     return filtfilt(b,a,data,axis=0)
 
-# Epoch into 2 second windows
-def preprocess_eeg(df, fs, bandpass_hz, notch_hz, artifact_thresh_uv=75, timestamps=None, expected_duration=None):
+# Epoch into 2 second windows    
+def preprocess_eeg(df, fs, bandpass_hz, notch_hz, artifact_thresh_uv=75,
+                   timestamps=None, expected_duration=None, epoch_length_sec=2, epoch_step_sec=2):
+    
     data = df.iloc[:, 2:].values  # exclude timestamps
 
     # apply the filters
@@ -36,12 +38,15 @@ def preprocess_eeg(df, fs, bandpass_hz, notch_hz, artifact_thresh_uv=75, timesta
             data = resample_to_duration(data, expected_duration, fs)
 
     # Epoching into 2 sec windows
-    epoch_len = int(fs * 2)
-    n_epochs = len(data) // epoch_len
-    epochs = data[:n_epochs * epoch_len].reshape(n_epochs, epoch_len, -1)
+    epoch_len = int(fs * epoch_length_sec)
+    step_len = int(fs * epoch_step_sec)
 
-    # Artifact rejection: zero out epochs with high amplitude
-    mask = np.any(np.abs(epochs) > artifact_thresh_uv, axis=(1, 2))
-    epochs[mask] = 0
+    epochs = []
+    for start in range(0, len(data) - epoch_len + 1, step_len):
+        epoch = data[start:start + epoch_len]
+        # Optional: Artifact rejection (commented out)
+        # if np.any(np.abs(epoch) > artifact_thresh_uv):
+        #     continue
+        epochs.append(epoch)
 
-    return epochs
+    return np.array(epochs)
