@@ -15,7 +15,7 @@ from pathlib import Path
 import json
 from scripts.predict_live import predict_from_window
 
-USE_MOCK_EEG = False 
+USE_MOCK_EEG = True 
 USE_MOCK_GSR = True
 
 SAMPLE_RATE = 250  # Hz
@@ -55,19 +55,51 @@ def compute_bandpower(buffer, fs):
 
 def stream_mock_data(socketio, eeg_channels):
     print("[EEG] Using MOCK EEG data")
-    while True:
-        buffer = np.random.normal(loc=0, scale=20, size=(WINDOW_SIZE, len(eeg_channels)))
-        eeg_data = buffer[-1].tolist() #eeg_data = [round(random.uniform(-40, 40), 2) for _ in eeg_channels]
-        gsr_value = round(random.uniform(0.01, 0.05), 4)
-        stress_level = random.choice(['Low', 'Medium', 'High'])
-        lie_status = random.choice(['Truth', 'Lie'])
-        bandpower = compute_bandpower(buffer, SAMPLE_RATE)
+    eeg_buffer = np.zeros((WINDOW_SIZE, len(eeg_channels)))
+    buffer_index = 0
+    last_stress_update = time.time()
 
+    while True:
+        new_sample = np.random.normal(loc=0, scale=20, size=len(eeg_channels))
+        eeg_data = new_sample.tolist()
+        eeg_buffer = np.roll(eeg_buffer, -1, axis=0)
+        eeg_buffer[-1] = new_sample
+        buffer_index += 1
+
+        gsr_value = round(random.uniform(0.01, 0.05), 4)
+        lie_status = random.choice(['Truth', 'Lie'])
+        bandpower = compute_bandpower(eeg_buffer, SAMPLE_RATE)
+
+        predicted_value = None
+        stress_level = "Unknown"
+        now = time.time()
+
+        # Predict every 3 seconds once enough buffer is filled
+        if buffer_index >= WINDOW_SIZE and (now - last_stress_update >= 1.0):
+            try:
+                print("[DEBUG] EEG buffer STD per channel:", np.std(eeg_buffer, axis=0))
+                predicted_value = predict_from_window(
+                    eeg_buffer.copy(),
+                    fs=SAMPLE_RATE,
+                    config=CONFIG,
+                    model_path=MODEL_PATH
+                )
+
+                print(f"[PREDICT] Stress value: {predicted_value}")
+
+            except Exception as e:
+                print(f"[EEG] Prediction error: {e}")
+                predicted_value = None
+
+            last_stress_update = now
+
+        # Emit data to client
         socketio.emit('eeg_data', {'data': eeg_data})
         socketio.emit('gsr_data', {'value': gsr_value})
-        socketio.emit('stress_detection', {'level': stress_level})
-        socketio.emit('lie_detected', {'status': lie_status})
         socketio.emit('bandpower_data', bandpower)
+        socketio.emit('lie_detected', {'status': lie_status})
+        if predicted_value is not None:
+            socketio.emit('stress_detection', {'value': predicted_value})
 
         time.sleep(0.1)
 
@@ -101,7 +133,7 @@ def stream_real_eeg(socketio, eeg_channels):
 
             now = time.time()
             
-            if buffer_index >= WINDOW_SIZE and (time.time() - last_stress_update >= 3.0):
+            if buffer_index >= WINDOW_SIZE and (time.time() - last_stress_update >= 2.0):
 
                 # Send other mock stats
                 gsr_value = round(random.uniform(0.01, 0.05), 4)
