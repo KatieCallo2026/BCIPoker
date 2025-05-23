@@ -56,7 +56,7 @@ python app.py
 This script serves as the main entry point for running the EEG experiment pipeline, including data collection, preprocessing, and future model training.
 
 ```bash
-python main.py [--e | --p PID | --m PID]
+python main.py [--e | --p PID | --m PID | --s]
 ```
 
 Flags
@@ -90,7 +90,7 @@ Processes data for a given participant:
 
 ### `--s` 
 
-Runs the ral-time server display dashboard, including:
+Runs the real-time server display dashboard, including:
 - starting the flask + socketIO server
 - streams EEG and GSR data
 - generated predictions for 

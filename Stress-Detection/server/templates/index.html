@@ -232,6 +232,9 @@
             options: {
                 responsive: true,
                 animation: false,
+                plugins: {
+                    streaming: true
+                },
                 scales: {
                     x: {
                         type: 'realtime',
@@ -242,14 +245,13 @@
                     },
                     y: {
                         min: 0,
-                        max: 2,
+                        max: 5,
                         ticks: {
-                            stepSize: 1,
-                            callback: val => ['Low', 'Medium', 'High'][val] ?? val
+                            stepSize: 1
                         },
                         title: {
                             display: true,
-                            text: 'Stress Level'
+                            text: 'Predicted Stress Level'
                         }
                     }
                 }
@@ -408,9 +410,6 @@
                 maintainAspectRatio: true,
                 scales: {
                     x: {
-                        // remove for auto scaling
-                        //min: 0,
-                        //max: 2,
                         ticks: {
                             precision: 2
                         },
@@ -420,13 +419,23 @@
                         }
                     },
                     y: {
-                        beginAtZero: true,
+                        type: 'logarithmic',
+                        min: 0.5,
+                        max: 20000,
                         title: {
                             display: true,
                             text: 'Power'
                         },
                         ticks: {
-                            precision: 2
+                            callback: function (value) {
+                                // Show only clean log values like 10, 100, 1000, etc.
+                                const remain = value / Math.pow(10, Math.floor(Math.log10(value)));
+                                if (remain === 1 || remain === 10) {
+                                    return value.toLocaleString();
+                                }
+                                return '';
+                            },
+                            color: '#333'
                         }
                     }
                 },
@@ -464,9 +473,8 @@
 
         // Stress detection stream (simple scalar)
         socket.on('stress_detection', data => {
-            const levelMap = { Low: 0, Medium: 1, High: 2 };
-            const value = levelMap[data.level];
             const timestamp = Date.now();
+            const value = data.value;  // raw float, like 2.18
             stressChart.data.datasets[0].data.push({ x: timestamp, y: value });
         });
 

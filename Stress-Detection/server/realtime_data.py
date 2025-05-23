@@ -10,12 +10,22 @@ import os
 import numpy as np
 from scipy.signal import welch
 
-USE_MOCK_EEG = True 
+import joblib
+from pathlib import Path
+import json
+from scripts.predict_live import predict_from_window
+
+USE_MOCK_EEG = False 
 USE_MOCK_GSR = True
 
 SAMPLE_RATE = 250  # Hz
 WINDOW_DURATION = 1.0  # seconds
 WINDOW_SIZE = int(SAMPLE_RATE * WINDOW_DURATION) 
+
+with open("config/experiment_config.json") as f:
+    CONFIG = json.load(f)
+
+MODEL_PATH = Path("data") / "stress_model_all.pkl"
 
 def compute_bandpower(buffer, fs):
     # buffer: shape (WINDOW_SIZE, n_channels)
@@ -79,10 +89,14 @@ def stream_real_eeg(socketio, eeg_channels):
     while True:
         sample, timestamp = inlet.pull_sample(timeout=0.0)
         if sample:# sample is a list of eeg vals - one per channel
+            print("[DEBUG] Sample:", sample)
+            print("[DEBUG] Sample length:", len(sample))
+    
             eeg_data = sample[:len(eeg_channels)]
             socketio.emit('eeg_data', {'data': eeg_data})
             
-            eeg_buffer[buffer_index % WINDOW_SIZE] = eeg_data
+            eeg_buffer = np.roll(eeg_buffer, -1, axis=0)
+            eeg_buffer[-1] = eeg_data
             buffer_index += 1
 
             now = time.time()
@@ -91,14 +105,41 @@ def stream_real_eeg(socketio, eeg_channels):
 
                 # Send other mock stats
                 gsr_value = round(random.uniform(0.01, 0.05), 4)
-                stress_level = random.choice(['Low', 'Medium', 'High'])
+                #stress_level = random.choice(['Low', 'Medium', 'High'])
                 lie_status = random.choice(['Truth', 'Lie'])
                 bandpower = compute_bandpower(eeg_buffer, SAMPLE_RATE)
     
-                socketio.emit('gsr_data', {'value': gsr_value})
-                socketio.emit('stress_detection', {'level': stress_level})
-                socketio.emit('lie_detected', {'status': lie_status})
+                # Predict stress level using the model
+                # Run model prediction
+                try:
+                    print("[DEBUG] EEG buffer STD per channel:", np.std(eeg_buffer, axis=0))
+                    predicted_value = predict_from_window(
+                        eeg_buffer.copy(),  # (500, 8)
+                        fs=SAMPLE_RATE,
+                        config=CONFIG,
+                        model_path=MODEL_PATH
+                    )
+
+                    # Map predicted value to label
+                    if predicted_value < 1.5:
+                        stress_level = "Low"
+                    elif predicted_value < 2.5:
+                        stress_level = "Medium"
+                    else:
+                        stress_level = "High"
+
+                except Exception as e:
+                    print(f"[EEG] Prediction error: {e}")
+                    stress_level = "Unknown"
+
+                # Send biometric data to the client
+                print(f"[PREDICT] Stress value: {predicted_value}")
+                socketio.emit('stress_detection', {'value': predicted_value})
                 socketio.emit('bandpower_data', bandpower)
+
+                # TODO: real
+                socketio.emit('gsr_data', {'value': gsr_value})
+                socketio.emit('lie_detected', {'status': lie_status})
 
                 last_stress_update = time.time()
 
