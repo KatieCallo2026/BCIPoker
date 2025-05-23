@@ -35,7 +35,11 @@ def run_pipeline(pid):
         fs=CONFIG["sampling_rate"],
         bandpass_hz=CONFIG["bandpass_hz"],
         notch_hz=CONFIG["notch_hz"],
-        artifact_thresh_uv=CONFIG["artifact_threshold_uv"]
+        artifact_thresh_uv=CONFIG["artifact_threshold_uv"],
+        timestamps=None, 
+        expected_duration=None, 
+        epoch_length_sec=2, 
+        epoch_step_sec=0.01 # sliding window epoching, this is the step size
     )
 
     # Extract features
