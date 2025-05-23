@@ -8,8 +8,11 @@ from processing.preprocess import preprocess_eeg
 from processing.feature_extraction import extract_features
 from processing.interpolate_labels import interpolate_labels
 from processing.label_alignment import align_labels_to_features
+from processing.train_model import train_stress_model, train_model_on_all_sessions
+
 from server.app import run_server 
 from scripts.run_experiment import run_experiment
+
 
 # Load config
 with open("config/experiment_config.json") as f:
@@ -72,7 +75,10 @@ if __name__ == "__main__":
     elif args.p:
         run_pipeline(args.p)
     elif args.m:
-        print(f"Model training not yet implemented for {args.m}.")
+        if args.m.lower() == "all":
+            train_model_on_all_sessions(CONFIG["output_dir"], CONFIG)
+        else:
+            train_stress_model(args.m, CONFIG)
     elif args.s:
         run_server()
     else:
