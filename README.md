@@ -39,6 +39,10 @@ This event blends entertainment and education, highlighting biometric tech while
 
 ![Whoops! Should be the data pipeline here](Graphics/data-pipeline-v2.png)
 
+# Electrode Placement
+
+![image](https://github.com/user-attachments/assets/c2557638-de84-4db6-8cdf-01867b8408ac)
+
 # Showcase Display 
 
 ![Should be our screen display here!](Graphics/main_display.png)
