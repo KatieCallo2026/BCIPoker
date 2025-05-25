@@ -41,7 +41,7 @@ This event blends entertainment and education, highlighting biometric tech while
 
 # Electrode Placement
 
-<img src="https://github.com/user-attachments/assets/02a2f5d5-fa0b-4ad4-9d10-812edd359860" width="400" alt="if this doen't work i give up..."/>
+<img src="https://github.com/user-attachments/assets/e2888a1a-7eff-421f-91a3-8fba92e5abf6" width="400" alt="if this doen't work i give up..."/>
 
 # Showcase Display 
 
