@@ -56,6 +56,14 @@ This event blends entertainment and education, highlighting biometric tech while
 ## Server Display (DEMO)
 
 ```bash
+# in the ./Stress-Detection directoty
+python main.py --s
+```
+
+## Server Display (DEMO)
+
+```bash
+# in the ./server-display directory
 python app.py
 ```
 
