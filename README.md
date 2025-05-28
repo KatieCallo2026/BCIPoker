@@ -39,6 +39,10 @@ This event blends entertainment and education, highlighting biometric tech while
 
 ![Whoops! Should be the data pipeline here](Graphics/data-pipeline-v2.png)
 
+# Electrode Placement
+
+<img src="https://github.com/user-attachments/assets/e2888a1a-7eff-421f-91a3-8fba92e5abf6" width="400" alt="if this doen't work i give up..."/>
+
 # Showcase Display 
 
 ![Should be our screen display here!](Graphics/main_display.png)
@@ -52,6 +56,14 @@ This event blends entertainment and education, highlighting biometric tech while
 ## Server Display (DEMO)
 
 ```bash
+# in the ./Stress-Detection directoty
+python main.py --s
+```
+
+## Server Display (DEMO)
+
+```bash
+# in the ./server-display directory
 python app.py
 ```
 
