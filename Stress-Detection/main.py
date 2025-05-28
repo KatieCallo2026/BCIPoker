@@ -12,7 +12,7 @@ from processing.train_model import train_stress_model, train_model_on_all_sessio
 
 from server.app import run_server 
 from scripts.run_experiment import run_experiment
-
+from sklearn.preprocessing import StandardScaler
 
 # Load config
 with open("config/experiment_config.json") as f:
@@ -44,10 +44,14 @@ def run_pipeline(pid):
         epoch_length_sec=2, 
         epoch_step_sec=0.01 # sliding window epoching, this is the step size
     )
-
     # Extract features
     print("Extracting features...")
     features = extract_features(epochs, fs=CONFIG["sampling_rate"])
+
+    # Normalize features
+    print("Normalizing features...")
+    scaler = StandardScaler()
+    features = scaler.fit_transform(features)
 
     # Interpolate SPSL labels
     print("Interpolating SPSL...")

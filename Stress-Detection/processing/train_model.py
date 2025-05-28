@@ -44,7 +44,7 @@ def train_model_on_all_sessions(data_dir, config):
             print(f"> Skipping {session_dir.name} — no processed_data.csv")
 
     if not all_data:
-        print("❌ No session data found. Aborting.")
+        print("No session data found. Aborting.")
         return
 
     df = pd.concat(all_data, ignore_index=True)
