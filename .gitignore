@@ -2,5 +2,9 @@ test_programs/eeg_stream_data.csv
 __pycache__
 *.sh
 logs/*
-Stress-Detection/data
 run.bat
+
+# Ignore everything in the data folder...
+Stress-Detection/data/*
+# ...but not the model 
+!Stress-Detection/data/stress_model_all.pkl
