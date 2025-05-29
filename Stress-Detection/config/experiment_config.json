@@ -1,26 +1,73 @@
 {
     "sampling_rate": 250,
     "epoch_length_sec": 2,
-    "bandpass_hz": [ 2, 48 ],
-    "notch_hz": [ 48, 52 ],
+    "bandpass_hz": [
+        2,
+        48
+    ],
+    "notch_hz": [
+        48,
+        52
+    ],
     "artifact_threshold_uv": 75,
-    "spsl_scale": [ 1, 5 ],
+    "spsl_scale": [
+        1,
+        5
+    ],
     "phases": [
-        { "name": "rest_1", "duration_sec": 120 },
-        { "name": "mist_1", "duration_sec": 120 },
-        { "name": "mist_2", "duration_sec": 120 },
-        { "name": "mist_3", "duration_sec": 120 },
-        { "name": "relax_1", "duration_sec": 90 },
-        { "name": "relax_2", "duration_sec": 90 }
+        {
+            "name": "rest_1",
+            "duration_sec": 120
+        },
+        {
+            "name": "mist_1",
+            "duration_sec": 120
+        },
+        {
+            "name": "mist_2",
+            "duration_sec": 120
+        },
+        {
+            "name": "mist_3",
+            "duration_sec": 120
+        },
+        {
+            "name": "relax_1",
+            "duration_sec": 90
+        },
+        {
+            "name": "relax_2",
+            "duration_sec": 90
+        }
     ],
     "spsl_prompts": {
-        "rest": [120],
-        "mist_1": [120],
-        "mist_2": [120],
-        "mist_3": [120],
-        "relax": [180]
+        "rest": [
+            120
+        ],
+        "mist_1": [
+            120
+        ],
+        "mist_2": [
+            120
+        ],
+        "mist_3": [
+            120
+        ],
+        "relax": [
+            180
+        ]
     },
     "output_dir": "data/",
-    "eeg_channels": ["AF3","AF4","F3","F4","T7","T8","P7","P8"],
-    "mock_mode": false
-} 
+    "eeg_channels": [
+        "AF3",
+        "AF4",
+        "F3",
+        "F4",
+        "T7",
+        "T8",
+        "P7",
+        "P8"
+    ],
+    "mock_eeg": false,
+    "mock_gsr": false
+}

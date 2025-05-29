@@ -17,6 +17,22 @@
     <!-- Socket.IO -->
     <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"></script>
 
+    <script>
+        const socket = io();
+
+        socket.on("connect", () => {
+            console.log("Connected to SocketIO server.");
+        });
+
+        socket.on("gsr_data", (data) => {
+            console.log("GSR incoming:", data);
+            const gsrEl = document.getElementById("gsr-value");
+            if (gsrEl && data.value !== undefined) {
+                gsrEl.textContent = data.value.toFixed(4);
+            }
+    </script>
+
+
     <style>
         body {
             font-family: sans-serif;
@@ -216,285 +232,285 @@
 
     <script>
 
-        // Stress chart
-        const stressCtx = document.getElementById('stressChart').getContext('2d');
-        const stressChart = new Chart(stressCtx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: 'Stress Level',
-                    data: [],
-                    borderColor: 'red',
-                    fill: false,
-                    stepped: true
-                }]
-            },
-            options: {
-                responsive: true,
-                animation: false,
-                plugins: {
-                    streaming: true
+            // Stress chart
+            const stressCtx = document.getElementById('stressChart').getContext('2d');
+            const stressChart = new Chart(stressCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Stress Level',
+                        data: [],
+                        borderColor: 'red',
+                        fill: false,
+                        stepped: true
+                    }]
                 },
-                scales: {
-                    x: {
-                        type: 'realtime',
-                        realtime: {
-                            duration: 8000,
-                            delay: 1000
-                        }
+                options: {
+                    responsive: true,
+                    animation: false,
+                    plugins: {
+                        streaming: true
                     },
-                    y: {
-                        min: 0,
-                        max: 5,
-                        ticks: {
-                            stepSize: 1
+                    scales: {
+                        x: {
+                            type: 'realtime',
+                            realtime: {
+                                duration: 8000,
+                                delay: 1000
+                            }
                         },
-                        title: {
-                            display: true,
-                            text: 'Predicted Stress Level'
-                        }
-                    }
-                }
-            }
-        });
-
-        // EEG chart stuff
-        const eegChannels = ['AF3', 'AF4', 'F3', 'F4', 'T7', 'T8', 'P7', 'P8'];
-        const eegBufferLength = 150;
-        const eegBuffers = eegChannels.map(() => []);
-        const subplotCanvas = document.getElementById('eegSubplotCanvas');
-        const ctx = subplotCanvas.getContext('2d');
-
-        function scaleCanvas(canvas) {
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            const ctx = canvas.getContext('2d');
-            ctx.scale(dpr, dpr);
-        }
-        scaleCanvas(subplotCanvas);
-
-        function drawEEGSubplots() {
-            scaleCanvas(subplotCanvas);
-            const w = subplotCanvas.width;
-            const h = subplotCanvas.height;
-            ctx.clearRect(0, 0, w, h);
-
-            const colCount = 4;
-            const rowCount = 2;
-            const subplotW = w / colCount;
-            const subplotH = h / rowCount;
-
-            eegChannels.forEach((label, i) => {
-                const col = i % colCount;
-                const row = Math.floor(i / colCount);
-                const x0 = col * subplotW;
-                const y0 = row * subplotH;
-
-                const buffer = eegBuffers[i];
-                if (buffer.length < 2) return;
-
-                const min = Math.min(...buffer);
-                const max = Math.max(...buffer);
-                const range = max - min || 1;
-
-                ctx.fillStyle = "#000";
-                ctx.font = "12px sans-serif";
-                ctx.fillText(label, x0 + 5, y0 + 15);
-
-                ctx.beginPath();
-                ctx.strokeStyle = `hsl(${i * 45}, 70%, 50%)`;
-                ctx.lineWidth = 1;
-
-                for (let j = 0; j < buffer.length; j++) {
-                    const x = x0 + (j / eegBufferLength) * subplotW;
-                    const y = y0 + ((1 - (buffer[j] - min) / range) * subplotH);
-                    if (j === 0) ctx.moveTo(x, y);
-                    else ctx.lineTo(x, y);
-                }
-
-                ctx.stroke();
-            });
-        }
-
-        window.addEventListener('resize', () => {
-            scaleCanvas(subplotCanvas);
-        });
-
-        // GSR chart
-        const gsrCtx = document.getElementById('gsrChart').getContext('2d');
-        const gsrChart = new Chart(gsrCtx, {
-            type: 'line',
-            data: {
-                datasets: [{
-                    label: 'GSR',
-                    data: [],
-                    borderColor: 'rgba(75,192,192,1)',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                animation: false,
-                scales: {
-                    x: {
-                        type: 'realtime',
-                        realtime: {
-                            duration: 8000,
-                            delay: 1000,
-                            frameRate: 15,
-                            pause: false,
-                            ttl: 20000
-                        }
-                    },
-                    y: {
-                        // remove for auto scaling
-                        //min: 0,
-                        //max: 0.06,
-                        ticks: {
-                            precision: 4,
-                            maxTicksLimit: 5
-                        },
-                        title: {
-                            display: true,
-                            text: 'GSR Value'
-                        }
-                    }
-                },
-                plugins: {
-                    streaming: true,
-                    legend: {
-                        labels: {
-                            font: { size: 14 }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Bandpower chart
-        // Bandpower chart
-        const bandCtx = document.getElementById('bandpowerChart').getContext('2d');
-        const bandpowerChart = new Chart(bandCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma'],
-                datasets: [{
-                    label: 'Band Power',
-                    data: [0, 0, 0, 0, 0],
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(255, 99, 132, 0.6)',
-                        'rgba(153, 102, 255, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(153, 102, 255, 1)'
-                    ],
-                    borderWidth: 1,
-                    borderRadius: 8,
-                    barThickness: 30
-                }]
-            },
-            options: {
-                animation: false,
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    x: {
-                        ticks: {
-                            precision: 2
-                        },
-                        title: {
-                            display: true,
-                            text: 'Frequency Band',
-                        }
-                    },
-                    y: {
-                        type: 'logarithmic',
-                        min: 0.5,
-                        max: 20000,
-                        title: {
-                            display: true,
-                            text: 'Power'
-                        },
-                        ticks: {
-                            callback: function (value) {
-                                // Show only clean log values like 10, 100, 1000, etc.
-                                const remain = value / Math.pow(10, Math.floor(Math.log10(value)));
-                                if (remain === 1 || remain === 10) {
-                                    return value.toLocaleString();
-                                }
-                                return '';
+                        y: {
+                            min: 0,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1
                             },
-                            color: '#333'
+                            title: {
+                                display: true,
+                                text: 'Predicted Stress Level'
+                            }
                         }
                     }
+                }
+            });
+
+            // EEG chart stuff
+            const eegChannels = ['AF3', 'AF4', 'F3', 'F4', 'T7', 'T8', 'P7', 'P8'];
+            const eegBufferLength = 150;
+            const eegBuffers = eegChannels.map(() => []);
+            const subplotCanvas = document.getElementById('eegSubplotCanvas');
+            const ctx = subplotCanvas.getContext('2d');
+
+            function scaleCanvas(canvas) {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(dpr, dpr);
+            }
+            scaleCanvas(subplotCanvas);
+
+            function drawEEGSubplots() {
+                scaleCanvas(subplotCanvas);
+                const w = subplotCanvas.width;
+                const h = subplotCanvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                const colCount = 4;
+                const rowCount = 2;
+                const subplotW = w / colCount;
+                const subplotH = h / rowCount;
+
+                eegChannels.forEach((label, i) => {
+                    const col = i % colCount;
+                    const row = Math.floor(i / colCount);
+                    const x0 = col * subplotW;
+                    const y0 = row * subplotH;
+
+                    const buffer = eegBuffers[i];
+                    if (buffer.length < 2) return;
+
+                    const min = Math.min(...buffer);
+                    const max = Math.max(...buffer);
+                    const range = max - min || 1;
+
+                    ctx.fillStyle = "#000";
+                    ctx.font = "12px sans-serif";
+                    ctx.fillText(label, x0 + 5, y0 + 15);
+
+                    ctx.beginPath();
+                    ctx.strokeStyle = `hsl(${i * 45}, 70%, 50%)`;
+                    ctx.lineWidth = 1;
+
+                    for (let j = 0; j < buffer.length; j++) {
+                        const x = x0 + (j / eegBufferLength) * subplotW;
+                        const y = y0 + ((1 - (buffer[j] - min) / range) * subplotH);
+                        if (j === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    }
+
+                    ctx.stroke();
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                scaleCanvas(subplotCanvas);
+            });
+
+            // GSR chart
+            const gsrCtx = document.getElementById('gsrChart').getContext('2d');
+            const gsrChart = new Chart(gsrCtx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'GSR',
+                        data: [],
+                        borderColor: 'rgba(75,192,192,1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.3
+                    }]
                 },
-                plugins: {
-                    legend: { display: false }
+                options: {
+                    responsive: true,
+                    animation: false,
+                    scales: {
+                        x: {
+                            type: 'realtime',
+                            realtime: {
+                                duration: 8000,
+                                delay: 1000,
+                                frameRate: 15,
+                                pause: false,
+                                ttl: 20000
+                            }
+                        },
+                        y: {
+                            // remove for auto scaling
+                            //min: 0,
+                            //max: 0.06,
+                            ticks: {
+                                precision: 4,
+                                maxTicksLimit: 5
+                            },
+                            title: {
+                                display: true,
+                                text: 'GSR Value'
+                            }
+                        }
+                    },
+                    plugins: {
+                        streaming: true,
+                        legend: {
+                            labels: {
+                                font: { size: 14 }
+                            }
+                        }
+                    }
                 }
-            }
-        });
+            });
 
-        // // // // // // // // // // // // // //
-
-        //  SOCKET HANDLERS  //
-
-        const socket = io();
-        socket.on('connect', () => console.log('[Socket] Connected to server'));
-        socket.on('disconnect', () => console.warn('[Socket] Disconnected'));
-
-        // GSR chart update
-        socket.on('gsr_data', data => {
-            const timestamp = Date.now();
-            gsrChart.data.datasets[0].data.push({ x: timestamp, y: data.value });
-        });
-
-        // EEG data streaming
-        socket.on('eeg_data', data => {
-            const values = data.data;
-            for (let i = 0; i < eegBuffers.length; i++) {
-                eegBuffers[i].push(values[i]);
-                if (eegBuffers[i].length > eegBufferLength) {
-                    eegBuffers[i].shift();
+            // Bandpower chart
+            // Bandpower chart
+            const bandCtx = document.getElementById('bandpowerChart').getContext('2d');
+            const bandpowerChart = new Chart(bandCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Delta', 'Theta', 'Alpha', 'Beta', 'Gamma'],
+                    datasets: [{
+                        label: 'Band Power',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(153, 102, 255, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    animation: false,
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        x: {
+                            ticks: {
+                                precision: 2
+                            },
+                            title: {
+                                display: true,
+                                text: 'Frequency Band',
+                            }
+                        },
+                        y: {
+                            type: 'logarithmic',
+                            min: 0.5,
+                            max: 20000,
+                            title: {
+                                display: true,
+                                text: 'Power'
+                            },
+                            ticks: {
+                                callback: function (value) {
+                                    // Show only clean log values like 10, 100, 1000, etc.
+                                    const remain = value / Math.pow(10, Math.floor(Math.log10(value)));
+                                    if (remain === 1 || remain === 10) {
+                                        return value.toLocaleString();
+                                    }
+                                    return '';
+                                },
+                                color: '#333'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
                 }
-            }
-            drawEEGSubplots();
-        });
+            });
 
-        // Stress detection stream (simple scalar)
-        socket.on('stress_detection', data => {
-            const timestamp = Date.now();
-            const value = data.value;  // raw float, like 2.18
-            stressChart.data.datasets[0].data.push({ x: timestamp, y: value });
-        });
+            // // // // // // // // // // // // // //
 
-        // Lie detection stream (text)
-        socket.on('lie_detected', data => {
-            document.getElementById('lieStatus').textContent = data.status;
-            //chart.update('none');
-        });
+            //  SOCKET HANDLERS  //
 
-        // Bandpower stream
-        socket.on('bandpower_data', data => {
-            bandpowerChart.data.datasets[0].data = [
-                data.delta,
-                data.theta,
-                data.alpha,
-                data.beta,
-                data.gamma
-            ];
-            bandpowerChart.update('none');
-        });
+            const socket = io();
+            socket.on('connect', () => console.log('[Socket] Connected to server'));
+            socket.on('disconnect', () => console.warn('[Socket] Disconnected'));
+
+            // GSR chart update
+            socket.on('gsr_data', data => {
+                const timestamp = Date.now();
+                gsrChart.data.datasets[0].data.push({ x: timestamp, y: data.value });
+            });
+
+            // EEG data streaming
+            socket.on('eeg_data', data => {
+                const values = data.data;
+                for (let i = 0; i < eegBuffers.length; i++) {
+                    eegBuffers[i].push(values[i]);
+                    if (eegBuffers[i].length > eegBufferLength) {
+                        eegBuffers[i].shift();
+                    }
+                }
+                drawEEGSubplots();
+            });
+
+            // Stress detection stream (simple scalar)
+            socket.on('stress_detection', data => {
+                const timestamp = Date.now();
+                const value = data.value;  // raw float, like 2.18
+                stressChart.data.datasets[0].data.push({ x: timestamp, y: value });
+            });
+
+            // Lie detection stream (text)
+            socket.on('lie_detected', data => {
+                document.getElementById('lieStatus').textContent = data.status;
+                //chart.update('none');
+            });
+
+            // Bandpower stream
+            socket.on('bandpower_data', data => {
+                bandpowerChart.data.datasets[0].data = [
+                    data.delta,
+                    data.theta,
+                    data.alpha,
+                    data.beta,
+                    data.gamma
+                ];
+                bandpowerChart.update('none');
+            });
 
     </script>
 
