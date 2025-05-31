@@ -4,6 +4,7 @@ from flask_socketio import SocketIO
 import threading
 from server.realtime_data import start_streaming_eeg, start_streaming_gsr
 import json
+from datetime import datetime
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
@@ -13,14 +14,27 @@ def index():
     return render_template("index.html")
 
 # arduino endpoint
+from datetime import datetime
+
 @app.route("/update", methods=["POST"])
 def update_from_arduino():
     data = request.get_json()
-    #print("Arduino sent:", data)
     if "gsr" in data:
-        socketio.emit("gsr_data", {"value": data["gsr"]})
+        try:
+            val_read = int(data["gsr"])
+            #if val_read >= 512:  # Avoid division by zero or negative resistance
+            #    return jsonify({"status": "error", "reason": "invalid sensor value"}), 400
+
+            resistance = (1024 + (2 * val_read)) * (1 / (512 - val_read))
+            val_res = (1 / resistance) * 100
+
+            socketio.emit("gsr_data", { "value": val_res })
+        
+        except (ValueError, ZeroDivisionError) as e:
+            return jsonify({"status": "error", "reason": str(e)}), 400
 
     return jsonify({"status": "success"})
+
 
 @socketio.on('connect')
 def test_connect():
