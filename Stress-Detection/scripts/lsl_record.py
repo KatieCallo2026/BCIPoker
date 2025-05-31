@@ -7,7 +7,7 @@ import time
 import csv
 
 # G.TEC Unicorn 8-channel labels
-channel_labels = ['FZ', 'C3', 'CZ', 'C4', 'PZ', 'PO7', 'OZ', 'PO8']
+channel_labels = ['AF3', 'AF4', 'F3', 'F4', 'T7', 'T9', 'P7', 'P8']
 
 # Load config and check mock mode
 with open("config/experiment_config.json", "r") as f:
