@@ -53,7 +53,7 @@ This event blends entertainment and education, highlighting biometric tech while
 
 # Usage
 
-## Server Display (DEMO)
+## Server Display (Showcase)
 
 ```bash
 # in the ./Stress-Detection directoty
@@ -194,6 +194,48 @@ predict_from_window(eeg_buffer, config, model_path)
 
 - The model applies the same filtering and feature extraction used during training (bandpass, notch, bandpower).
 - Prediction is a continuous stress level value (e.g. 2.13), which is sent to the dashboard and plotted.
+
+# Installation Guide
+
+Install & Run Instructions / Guide
+
+1. Download the BCIPoker gitub repo  
+   1. [https://github.com/KatieCallo2026/BCIPoker](https://github.com/KatieCallo2026/BCIPoker)  
+2. Install miniconda  
+3. Setup python environment  
+   1. Download miniconda  
+   2. Open the miniconda prompt (shortcut or create from miniconda3/Scripts/activate  
+      1. %windir%\\System32\\cmd.exe /K "C:\\Users\\\<YourUsername\>\\miniconda3\\Scripts\\activate.bat"  
+   3. cd into BCIPoker repo  
+   4. Create the poker environment: conda create \-n poker python=3.11 \-y  
+   5. Activate the new env: conda activate poker  
+   6. Install required packages: conda env update \--file environment.yml \--prune  
+   7. run: pip install pyserial && pip install tqdm  
+4. Run Test Server  
+   1. run: cd Stress-Detection   
+   2. run: python [main.py](http://main.py) \--s  
+   3. Open the http link it outputs to view dashboard  
+5. Run with real EEG  
+   1. Edit the config file and set \`mock-eeg\` to false  
+   2. Pair the headset to the laptop via bluetooth  
+   3. Open Unicorn LSL and open the stream and click start as well  
+   4. Then run the server again, refresh as needed  
+6. Run with real GSR data  
+   1. Update the /Stress-Detection/gsr/hotspot\_gsr.ino sketch file with:  
+      1. The name and password for the hotspot  
+      2. The ip of the laptop connected to that hotspot  
+      3. The ip is retrieved from running \`ipconfig\` in the terminal and it should be the IPv4 address under Wireless LAN adapter WiFi  
+      4. Upload the sketch with the arduino connected to power supply and it will try to connect and send signals  
+      5. Note: it can disconnect, just press the restart button to try to connect again, and this won't require you to upload the sketch   
+   2. Make sure the laptop is connected to the hotspot  
+   3. Make sure the hotspot is near both the laptop and arduino  
+   4. Set \`mock-gsr\` to false in the config file  
+   5. Run the server   
+      1. Note, the arduino’s connection may time out, just hit the reset button to try to connect again, then you should see its http responses
+
+Other things that are *very* useful:
+* Git  
+* Vscode
 
 # Credits 
 
