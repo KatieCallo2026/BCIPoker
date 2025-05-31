@@ -76,3 +76,5 @@ dependencies:
       - xxhash==3.5.0
       - z3-solver==4.15.0.0
       - zipp
+      - tqdm
+      - pyserial

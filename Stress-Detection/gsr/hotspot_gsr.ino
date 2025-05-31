@@ -1,12 +1,17 @@
 #include <WiFiS3.h>
 #include <ArduinoHttpClient.h>
 
-# THESE 3 NEED TO BE CHANGED PER LAPTOP AND PER PHONE HOTSPOT
+// THESE 3 NEED TO BE CHANGED PER LAPTOP AND PER PHONE HOTSPOT
 
 const char* ssid = "HOTSPOT_NAME";               // your hotspot name
 const char* password = "HOTSPOT_PASSWORD";   // your hotspot password
 
+// run `ipconfig` in cmd, its the IPv4 address under the Wireless LAN adapter Wi-Fi
 const char* serverAddress = "LAPTOP_IP"; // your laptop's IP
+// Abril: "172.20.10.2"
+// Alizee HP: "172.20.10.4"
+
+
 const int serverPort = 5000;
 
 const int GSR = A0;
