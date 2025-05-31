@@ -28,11 +28,13 @@ def extract_features(epochs, fs):
         feat_vector = []
     
         # ---- Bandpowers ----
+        #print("\tCalculating bandpowers...")
         bandpowers = {band: bandpower(epoch, fs, rng) for band, rng in bands.items()}
         for bp in bandpowers.values():
             feat_vector.append(np.mean(bp))  # avg bandpower over channels
 
         # ---- Frontal Alpha Asymmetry ----
+        #print("\tCalculating Frontal Alpha Asymmetry (FAA)...")
         ch_f3 = channel_labels.index('F3')
         ch_f4 = channel_labels.index('F4')
         alpha_f3 = bandpowers['alpha'][ch_f3]
@@ -41,6 +43,7 @@ def extract_features(epochs, fs):
         feat_vector.append(faa)
 
         # ---- Relative Gamma ----
+        #print("\tCalculating Relative Gamma (RG)...")
         alpha = bandpowers['alpha']
         beta = bandpowers['beta']
         gamma = bandpowers['gamma']
@@ -48,14 +51,15 @@ def extract_features(epochs, fs):
         feat_vector.append(np.mean(rg))
 
         # ---- Statistical Moments per channel ----
-        for ch in range(epoch.shape[1]):
+        #print("\tCalculating statistical moments...")
+        '''for ch in range(epoch.shape[1]):
             signal = epoch[:, ch]
             feat_vector.extend([
                 np.mean(signal),
                 np.std(signal),
                 skew(signal),
                 kurtosis(signal)
-            ])
+            ])'''
 
         features.append(feat_vector)
 
