@@ -4,7 +4,5 @@ __pycache__
 logs/*
 run.bat
 
-# Ignore everything in the data folder...
+# Ignore everything in the data folder
 Stress-Detection/data/*
-# ...but not the model 
-!Stress-Detection/data/stress_model_all.pkl
