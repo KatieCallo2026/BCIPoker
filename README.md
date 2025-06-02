@@ -210,17 +210,20 @@ Install & Run Instructions / Guide
    4. Create the poker environment: conda create \-n poker python=3.11 \-y  
    5. Activate the new env: conda activate poker  
    6. Install required packages: conda env update \--file environment.yml \--prune  
-   7. run: pip install pyserial && pip install tqdm  
-4. Run Test Server  
+   7. run: pip install pyserial && pip install tqdm
+4. Download the Stress Detection Model
+    1. On the consulting team Google Drive
+    2. Drop into folder: /BCIPoker/Stress-Detection/data/
+6. Run Test Server  
    1. run: cd Stress-Detection   
    2. run: python [main.py](http://main.py) \--s  
    3. Open the http link it outputs to view dashboard  
-5. Run with real EEG  
+7. Run with real EEG  
    1. Edit the config file and set \`mock-eeg\` to false  
    2. Pair the headset to the laptop via bluetooth  
    3. Open Unicorn LSL and open the stream and click start as well  
    4. Then run the server again, refresh as needed  
-6. Run with real GSR data  
+8. Run with real GSR data  
    1. Update the /Stress-Detection/gsr/hotspot\_gsr.ino sketch file with:  
       1. The name and password for the hotspot  
       2. The ip of the laptop connected to that hotspot  
