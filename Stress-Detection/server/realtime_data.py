@@ -9,6 +9,7 @@ import time, random
 import os
 import numpy as np
 from scipy.signal import welch
+import random
 
 import joblib
 from pathlib import Path
@@ -108,6 +109,7 @@ def stream_mock_eeg(socketio, eeg_channels):
     eeg_buffer = np.zeros((WINDOW_SIZE, len(eeg_channels)))
     buffer_index = 0
     last_stress_update = time.time()
+    lie_status = "Unknown"
 
     while True:
         new_sample = np.random.normal(loc=0, scale=20, size=len(eeg_channels))
@@ -117,7 +119,6 @@ def stream_mock_eeg(socketio, eeg_channels):
         buffer_index += 1
 
         bandpower = compute_bandpower(eeg_buffer, SAMPLE_RATE)
-        lie_status = random.choice(['Truth', 'Lie'])
 
         predicted_value = None
         now = time.time()
@@ -130,6 +131,7 @@ def stream_mock_eeg(socketio, eeg_channels):
                     config=CONFIG,
                     model_path=MODEL_PATH
                 )
+                lie_status = random.choices( ['Bluffing', 'Not Bluffing'], weights=[0.2, 0.8], k=1 )[0]
             except Exception as e:
                 print(f"[EEG] Prediction error: {e}")
                 predicted_value = None
@@ -179,7 +181,6 @@ def stream_real_eeg(socketio, eeg_channels):
                 # Send other mock stats
                 gsr_value = round(random.uniform(0.01, 0.05), 4)
                 #stress_level = random.choice(['Low', 'Medium', 'High'])
-                lie_status = random.choice(['Truth', 'Lie'])
                 bandpower = compute_bandpower(eeg_buffer, SAMPLE_RATE)
     
                 # Predict stress level using the model
@@ -212,6 +213,11 @@ def stream_real_eeg(socketio, eeg_channels):
 
                 # TODO: real
                 #socketio.emit('gsr_data', {'value': gsr_value})
+                lie_status = random.choices(
+                    ['Bluffing', 'Not Bluffing'],
+                    weights=[0.2, 0.8],  # 20% Bluffing, 80% Not Bluffing
+                    k=1
+                )[0]
                 socketio.emit('lie_detected', {'status': lie_status})
 
                 last_stress_update = time.time()

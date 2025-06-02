@@ -3,8 +3,8 @@
 
 // THESE 3 NEED TO BE CHANGED PER LAPTOP AND PER PHONE HOTSPOT
 
-const char* ssid = "HOTSPOT_NAME";               // your hotspot name
-const char* password = "HOTSPOT_PASSWORD";   // your hotspot password
+const char* ssid = "iPhone (25)";               // your hotspot name
+const char* password = "ghskblwzda9s";   // your hotspot password
 
 // run `ipconfig` in cmd, its the IPv4 address under the Wireless LAN adapter Wi-Fi
 const char* serverAddress = "LAPTOP_IP"; // your laptop's IP
